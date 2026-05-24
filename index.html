@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Surf Cams</title>
+<!-- hls.js for the HLS (.m3u8) stream on browsers without native HLS (Chrome/Firefox) -->
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
+<style>
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  surfcam-app { display: block; height: 100vh; height: 100dvh; }
+</style>
+</head>
+<body>
+<surfcam-app></surfcam-app>
+
+<script>
+/* ------------------------------------------------------------------ *
+ *  Cam feed                                                           *
+ *  type tells the <surfcam-view> how to render the url:               *
+ *    iframe -> drop the url into an <iframe> (Surfline embed)         *
+ *    mjpeg  -> motion-JPEG, renders directly in an <img>              *
+ *    hls    -> .m3u8, native <video> on Safari else hls.js            *
+ * ------------------------------------------------------------------ */
+const CAMS = [
+  {
+    name: 'Point Judith',
+    icon: 'lighthouse',
+    type: 'iframe',
+    url:  'https://embed.cdn-surfline.com/cams/5a0d9cf3c9996e001ed93cb2/d537c27dc8b939b5aa647dd2a9e66cc0828c3592'
+  },
+  {
+    name: 'Ocean Mist',
+    icon: 'beer',
+    type: 'mjpeg',
+    url:  'https://oceanmist.ddns.net:4444/axis-cgi/mjpg/video.cgi?resolution=800x450&dummy=1779016655449'
+  },
+  {
+    name: 'Town Beach',
+    icon: 'castle',
+    type: 'hls',
+    url:  'https://5c864aa99ee04.streamlock.net/surfcam/live.stream/playlist.m3u8'
+  }
+];
+
+/* Inline line-icons (Lucide-style) so the dock has no image dependencies. */
+const ICONS = {
+  lighthouse: `<path d="M10 22h4"/><path d="M10.5 22 11 11h2l.5 11"/><path d="M9.5 11h5"/>
+               <path d="M10.5 11V8h3v3"/><path d="M10 8l2-2 2 2"/>
+               <path d="M16 7l2.5-1"/><path d="M8 7 5.5 6"/>`,
+  beer: `<path d="M17 11h1a3 3 0 0 1 0 6h-1"/><path d="M9 12v6"/><path d="M13 12v6"/>
+         <path d="M14 7.5c-1 0-1.44.5-3 .5s-2-.5-3-.5-1.72.5-2.5.5a2.5 2.5 0 0 1 0-5c.78 0 1.57.5 2.5.5S9.44 3 11 3s2 .5 3 .5 1.72-.5 2.5-.5a2.5 2.5 0 0 1 0 5c-.78 0-1.5-.5-2.5-.5Z"/>
+         <path d="M5 8v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V8"/>`,
+  castle: `<path d="M22 20v-9H2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2Z"/><path d="M18 11V4H6v7"/>
+           <path d="M15 22v-4a3 3 0 0 0-6 0v4"/><path d="M22 11V9"/><path d="M2 11V9"/>
+           <path d="M6 4V2"/><path d="M10 4V2"/><path d="M14 4V2"/><path d="M18 4V2"/>`
+};
+const svgIcon = name => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+  stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${ICONS[name] || ''}</svg>`;
+
+/* ================================================================== *
+ *  <surfcam-view> — a single full-screen cam                          *
+ * ================================================================== */
+class SurfcamView extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+    this.shadowRoot.innerHTML = `
+      <style>
+        :host { position: absolute; inset: 0; display: block; background: #000; }
+        .stage { position: absolute; inset: 0; display: grid; place-items: center; }
+        iframe { width: 100%; height: 100%; border: 0; }
+        video, img { width: 100%; height: 100%;
+          object-fit: cover; background: #000; }
+        .status { position: absolute; inset: 0; display: grid; place-items: center;
+          color: #8aa; font-size: 15px; letter-spacing: .04em; pointer-events: none;
+          transition: opacity .4s; text-align: center; padding: 1rem; }
+        .status.hidden { opacity: 0; }
+      </style>
+      <div class="stage"></div>
+      <div class="status">loading…</div>`;
+    this._stage = this.shadowRoot.querySelector('.stage');
+    this._status = this.shadowRoot.querySelector('.status');
+    this._hls = null;
+  }
+
+  /* (re)build the stage for a given cam */
+  show(cam) {
+    this._teardown();
+    this._status.textContent = 'connecting to ' + cam.name + '…';
+    this._status.classList.remove('hidden');
+
+    if (cam.type === 'iframe') {
+      const f = document.createElement('iframe');
+      f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+      f.allowFullscreen = true;
+      f.referrerPolicy = 'no-referrer-when-downgrade';
+      f.src = cam.url;
+      f.addEventListener('load', () => this._ready());
+      this._stage.appendChild(f);
+
+    } else if (cam.type === 'mjpeg') {
+      const img = document.createElement('img');
+      img.alt = cam.name;
+      img.decoding = 'async';
+      img.addEventListener('load', () => this._ready());
+      img.addEventListener('error', () => this._fail(cam));
+      // cache-bust so a fresh MJPEG stream is opened each time
+      img.src = cam.url + (cam.url.includes('?') ? '&' : '?') + 't=' + Date.now();
+      this._stage.appendChild(img);
+
+    } else if (cam.type === 'hls') {
+      const v = document.createElement('video');
+      v.autoplay = true; v.muted = true; v.playsInline = true; v.controls = true;
+      v.addEventListener('playing', () => this._ready());
+      v.addEventListener('error', () => this._fail(cam));
+      this._stage.appendChild(v);
+
+      const tryPlay = () => { const p = v.play(); if (p) p.catch(() => {}); };
+
+      if (v.canPlayType('application/vnd.apple.mpegurl')) {
+        v.src = cam.url;                       // Safari / iOS native HLS
+        v.addEventListener('loadedmetadata', tryPlay, { once: true });
+        tryPlay();
+      } else if (window.Hls && window.Hls.isSupported()) {
+        const hls = new Hls({ lowLatencyMode: true });
+        this._hls = hls;
+        hls.loadSource(cam.url);
+        hls.attachMedia(v);
+        hls.on(Hls.Events.MANIFEST_PARSED, tryPlay);   // play as soon as stream is ready
+        hls.on(Hls.Events.ERROR, (_, d) => { if (d.fatal) this._fail(cam); });
+      } else {
+        this._fail(cam);
+      }
+    }
+  }
+
+  _ready() { this._status.classList.add('hidden'); }
+  _fail(cam) {
+    this._status.classList.remove('hidden');
+    this._status.textContent = '⚠ could not load ' + cam.name +
+      ' — the cam may be offline or blocking embedding.';
+  }
+  _teardown() {
+    if (this._hls) { this._hls.destroy(); this._hls = null; }
+    this._stage.replaceChildren();
+  }
+  disconnectedCallback() { this._teardown(); }
+}
+customElements.define('surfcam-view', SurfcamView);
+
+/* ================================================================== *
+ *  <surfcam-dock> — macOS-style magnifying dock                       *
+ *  Fires `cam-select` (detail:index) when an item is clicked.         *
+ * ================================================================== */
+class SurfcamDock extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+    this.shadowRoot.innerHTML = `
+      <style>
+        :host { position: fixed; left: 0; right: 0; bottom: 0; display: grid;
+          justify-items: center; padding-bottom: max(14px, env(safe-area-inset-bottom));
+          z-index: 10; pointer-events: none; }
+        /* dock is desktop-only; mobile switches cams by swiping */
+        @media (max-width: 768px) { :host { display: none; } }
+        .dock { pointer-events: auto; display: flex; align-items: flex-end; gap: 20px;
+          padding: 12px 30px; background: none; }
+        .item { position: relative; width: 56px; height: 56px; flex: 0 0 auto;
+          display: grid; place-items: center; cursor: pointer; color: #fff;
+          transform-origin: bottom center; transition: transform .15s ease, margin .15s ease;
+          will-change: transform; }
+        .tile { width: 100%; height: 100%; border-radius: 14px; display: grid;
+          place-items: center; background: linear-gradient(160deg,#3a82f6,#1f5fd1);
+          box-shadow: 0 4px 12px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.35); }
+        .item:nth-child(2) .tile { background: linear-gradient(160deg,#f0a93b,#d97516); }
+        .item:nth-child(3) .tile { background: linear-gradient(160deg,#8a6cf0,#5b3fc4); }
+        svg { width: 60%; height: 60%; }
+        .label { position: absolute; bottom: calc(100% + 12px); white-space: nowrap;
+          padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 600;
+          color: #fff; background: rgba(20,20,24,.9); border: 1px solid rgba(255,255,255,.15);
+          opacity: 0; transform: translateY(4px); transition: opacity .12s, transform .12s;
+          pointer-events: none; }
+        .item:hover .label { opacity: 1; transform: translateY(0); }
+        .dot { position: absolute; bottom: -11px; width: 4px; height: 4px; border-radius: 50%;
+          background: #cccccc; opacity: 0; transition: opacity .2s; }
+        .item.active .dot { opacity: .9; }
+      </style>
+      <div class="dock"></div>`;
+    this._dock = this.shadowRoot.querySelector('.dock');
+  }
+
+  connectedCallback() {
+    CAMS.forEach((cam, i) => {
+      const item = document.createElement('div');
+      item.className = 'item';
+      item.title = cam.url;
+      item.innerHTML =
+        `<span class="label">${cam.name}</span>
+         <div class="tile">${svgIcon(cam.icon)}</div>
+         <span class="dot"></span>`;
+      item.addEventListener('click', () =>
+        this.dispatchEvent(new CustomEvent('cam-select',
+          { detail: i, bubbles: true, composed: true })));
+      this._dock.appendChild(item);
+    });
+    this._items = [...this._dock.querySelectorAll('.item')];
+    this._dock.addEventListener('mousemove', e => this._magnify(e.clientX));
+    this._dock.addEventListener('mouseleave', () => this._reset());
+  }
+
+  /* OS X genie magnification: scale by distance from cursor */
+  _magnify(x) {
+    const MAX = 1.55, RADIUS = 110;
+    this._items.forEach(item => {
+      const r = item.getBoundingClientRect();
+      const center = r.left + r.width / 2;
+      const dist = Math.abs(x - center);
+      const scale = dist > RADIUS ? 1 : 1 + (MAX - 1) * (1 - dist / RADIUS);
+      item.style.transform = `scale(${scale})`;
+      item.style.margin = `0 ${(scale - 1) * 14}px`;
+    });
+  }
+  _reset() {
+    this._items.forEach(item => { item.style.transform = ''; item.style.margin = ''; });
+  }
+  setActive(i) {
+    this._items.forEach((it, idx) => it.classList.toggle('active', idx === i));
+  }
+}
+customElements.define('surfcam-dock', SurfcamDock);
+
+/* ================================================================== *
+ *  <surfcam-app> — wires the feed, full-screen view and dock together *
+ * ================================================================== */
+class SurfcamApp extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+    this.shadowRoot.innerHTML = `
+      <style>
+        :host { position: relative; display: block; height: 100%; }
+        .wave { position: fixed; top: 14px; right: 16px; z-index: 11; width: 46px; height: 46px;
+          display: grid; place-items: center; border-radius: 50%; color: #fff;
+          background: rgba(255,255,255,.08); backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,.18);
+          transition: transform .15s ease, background .15s ease; }
+        .wave:hover { transform: scale(1.1); background: rgba(255,255,255,.18); }
+        .wave svg { width: 26px; height: 26px; filter: drop-shadow(0 1px 3px rgba(0,0,0,.5)); }
+        /* mobile-only bottom tab bar (dock is hidden below 768px) */
+        .tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; display: none;
+          align-items: stretch; pointer-events: auto;
+          padding-bottom: env(safe-area-inset-bottom);
+          background: rgba(20,20,24,.72); backdrop-filter: blur(22px) saturate(160%);
+          -webkit-backdrop-filter: blur(22px) saturate(160%);
+          border-top: 1px solid rgba(255,255,255,.12); }
+        .tabbar button { flex: 1; display: flex; flex-direction: column; align-items: center;
+          gap: 3px; padding: 9px 4px 10px; background: none; border: 0; cursor: pointer;
+          font-family: inherit; font-size: 11px; font-weight: 600;
+          color: rgba(255,255,255,.55); transition: color .15s; -webkit-tap-highlight-color: transparent; }
+        .tabbar button svg { width: 24px; height: 24px; }
+        .tabbar button.on { color: #fff; }
+        @media (max-width: 768px) { .tabbar { display: flex; } }
+      </style>
+      <a class="wave" href="https://hopewaves.app/" target="_blank" rel="noopener" title="hopewaves.app">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 8c2.5 0 2.5 2.5 5 2.5S9.5 8 12 8s2.5 2.5 5 2.5S19.5 8 22 8"/>
+          <path d="M2 13c2.5 0 2.5 2.5 5 2.5S9.5 13 12 13s2.5 2.5 5 2.5S19.5 13 22 13"/>
+          <path d="M2 18c2.5 0 2.5 2.5 5 2.5S9.5 18 12 18s2.5 2.5 5 2.5S19.5 18 22 18"/>
+        </svg>
+      </a>
+      <surfcam-view></surfcam-view>
+      <surfcam-dock></surfcam-dock>
+      <nav class="tabbar"></nav>`;
+    this._view  = this.shadowRoot.querySelector('surfcam-view');
+    this._dock  = this.shadowRoot.querySelector('surfcam-dock');
+    this._tabs  = this.shadowRoot.querySelector('.tabbar');
+    this._tabs.innerHTML = CAMS.map((c, i) =>
+      `<button type="button" data-i="${i}">${svgIcon(c.icon)}<span>${c.name}</span></button>`).join('');
+    this._tabs.addEventListener('click', e => {
+      const b = e.target.closest('button');
+      if (b) this.select(+b.dataset.i);
+    });
+    this._index = 0;
+  }
+
+  connectedCallback() {
+    this.addEventListener('cam-select', e => this.select(e.detail));
+    this._bindSwipe();   // mobile: swipe left/right to switch cams
+    this.select(0);      // open the first cam in the feed
+  }
+
+  /* horizontal swipe navigation for touch devices */
+  _bindSwipe() {
+    let x0 = null, y0 = null;
+    this.addEventListener('touchstart', e => {
+      x0 = e.touches[0].clientX; y0 = e.touches[0].clientY;
+    }, { passive: true });
+    this.addEventListener('touchend', e => {
+      if (x0 === null) return;
+      const dx = e.changedTouches[0].clientX - x0;
+      const dy = e.changedTouches[0].clientY - y0;
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+        const next = (this._index + (dx < 0 ? 1 : -1) + CAMS.length) % CAMS.length;
+        this.select(next);
+      }
+      x0 = y0 = null;
+    }, { passive: true });
+  }
+
+  select(i) {
+    const cam = CAMS[i];
+    this._index = i;
+    this._view.show(cam);
+    this._dock.setActive(i);
+    [...this._tabs.children].forEach((b, idx) => b.classList.toggle('on', idx === i));
+  }
+}
+customElements.define('surfcam-app', SurfcamApp);
+</script>
+</body>
+</html>
