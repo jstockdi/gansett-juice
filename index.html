@@ -165,6 +165,8 @@ class SurfcamDock extends HTMLElement {
           z-index: 10; pointer-events: none; }
         /* dock is desktop-only; mobile switches cams by swiping */
         @media (max-width: 768px) { :host { display: none; } }
+        /* hide in phone landscape (wide but short) */
+        @media (orientation: landscape) and (max-height: 600px) { :host { display: none; } }
         .dock { pointer-events: auto; display: flex; align-items: flex-end; gap: 20px;
           padding: 12px 30px; background: none; }
         .item { position: relative; width: 56px; height: 56px; flex: 0 0 auto;
@@ -262,6 +264,8 @@ class SurfcamApp extends HTMLElement {
         .tabbar button svg { width: 24px; height: 24px; }
         .tabbar button.on { color: #fff; }
         @media (max-width: 768px) { .tabbar { display: flex; } }
+        /* hide in phone landscape (wide but short) */
+        @media (orientation: landscape) and (max-height: 600px) { .tabbar { display: none; } }
       </style>
       <a class="wave" href="https://hopewaves.app/" target="_blank" rel="noopener" title="hopewaves.app">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
