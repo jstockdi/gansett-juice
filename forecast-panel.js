@@ -24,10 +24,11 @@ const FC_LIMIT = {
   size: 'too small', wind: 'wind is wrong', period: 'period too short',
   tide: 'tide is wrong', none: 'nothing holding it back',
 };
-const FC_REGION = id =>
-  ['narragansett-town-beach', 'monahans-dock'].includes(id) ? 'narragansett'
-  : ['point-judith-east', 'point-judith-south', 'k38', 'camp-cronin'].includes(id) ? 'point-judith'
-  : 'matunuck';
+/* the spot's wind region now comes from the data, not a hardcoded id list here.
+   The old list named spots by id and rotted the moment the registry changed --
+   a removed spot would have silently mapped to the wrong NWS cell. */
+let FC_SPOTS = {};
+const FC_REGION = id => (FC_SPOTS[id] && FC_SPOTS[id].windRegion) || 'point-judith';
 const RI = 'America/New_York';     // the forecast is FOR Rhode Island -- always show RI
                                    // time, not the viewer's. Default toLocaleString uses
                                    // the viewer's tz and silently reported a 7pm peak as
@@ -242,6 +243,7 @@ class SurfForecast extends HTMLElement {
       const r = await fetch('./data/forecast.json', { cache: 'no-cache' });
       if (!r.ok) throw new Error(r.status);
       this._d = await r.json();
+      FC_SPOTS = Object.fromEntries(this._d.spots.map(s => [s.id, s]));
       this.render();
     } catch {
       this.shadowRoot.getElementById('wrap').innerHTML =

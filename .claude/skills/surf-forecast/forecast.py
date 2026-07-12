@@ -820,7 +820,7 @@ def build(use_cache=True, window=None):
         # chart no general surf forecast can draw -- they don't have per-spot geometry.
         "spots": [{k: s[k] for k in
                    ("id", "name", "lat", "lon", "facing", "offshoreDir", "openWindow",
-                    "bottom", "confidence", "notes")
+                    "windRegion", "bottom", "confidence", "notes")
                    if k in s} | ({"disputedWindow": s["disputedWindow"]}
                                  if s.get("disputedWindow") else {})
                   for s in spots],

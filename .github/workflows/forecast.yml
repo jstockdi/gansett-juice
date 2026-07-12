@@ -42,12 +42,23 @@ jobs:
         if: steps.gate.outputs.run == 'true'
         run: python3 .claude/skills/surf-forecast/forecast.py
 
+      # GitHub Pages serves the JS with max-age=600 and index.html has no version
+      # token, so after a deploy browsers keep running the OLD script -- a shipped
+      # fix stays invisible. Stamp the src with the file's own content hash: it
+      # changes only when the JS changes, and then it busts immediately.
+      - name: Cache-bust forecast-panel.js
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          H=$(md5sum forecast-panel.js | cut -c1-8)
+          sed -i -E "s|forecast-panel\.js(\?v=[a-f0-9]+)?|forecast-panel.js?v=$H|" index.html
+          grep -o 'forecast-panel.js?v=[a-f0-9]*' index.html
+
       - name: Commit if changed
         if: steps.gate.outputs.run == 'true'
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/forecast.json data/calibration-log.jsonl
+          git add data/forecast.json data/calibration-log.jsonl index.html
           if git diff --staged --quiet; then
             echo "no change"
           else
