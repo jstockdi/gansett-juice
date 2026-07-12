@@ -1,6 +1,6 @@
 {
  "schema": "gansett-juice/forecast@1",
- "generatedAt": "2026-07-12T12:45:24.391048-04:00",
+ "generatedAt": "2026-07-12T12:58:52.268367-04:00",
  "timezone": "America/New_York",
  "grid": {
   "interval": "PT1H",
@@ -11,50 +11,50 @@
   {
    "id": "gfswave016",
    "url": "https://marine-api.open-meteo.com/v1/marine?latitude=41.36&longitude=-71.49&hourly=swell_wave_height,swell_wave_direction,swell_wave_period,wind_wave_height,wind_wave_direction,wind_wave_period&timezone=America%2FNew_York&length_unit=imperial&models=ncep_gfswave016&forecast_days=6",
-   "status": "cached",
-   "fetchedAt": "2026-07-12T12:45:21.499904-04:00"
+   "status": "ok",
+   "fetchedAt": "2026-07-12T12:58:50.554954-04:00"
   },
   {
    "id": "nws-BOX-66-56",
    "url": "https://api.weather.gov/gridpoints/BOX/66,56",
    "status": "ok",
-   "fetchedAt": "2026-07-12T12:45:22.223475-04:00"
+   "fetchedAt": "2026-07-12T12:58:50.751457-04:00"
   },
   {
    "id": "nws-BOX-65-53",
    "url": "https://api.weather.gov/gridpoints/BOX/65,53",
    "status": "ok",
-   "fetchedAt": "2026-07-12T12:45:22.729725-04:00"
+   "fetchedAt": "2026-07-12T12:58:50.992410-04:00"
   },
   {
    "id": "nws-BOX-63-54",
    "url": "https://api.weather.gov/gridpoints/BOX/63,54",
    "status": "ok",
-   "fetchedAt": "2026-07-12T12:45:23.302391-04:00"
+   "fetchedAt": "2026-07-12T12:58:51.278692-04:00"
   },
   {
    "id": "coops-hourly",
    "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&application=gansett-juice&begin_date=20260712&end_date=20260717&datum=MLLW&station=8455083&time_zone=lst_ldt&units=english&format=json&interval=h",
-   "status": "cached",
-   "fetchedAt": "2026-07-12T12:45:23.306113-04:00"
+   "status": "ok",
+   "fetchedAt": "2026-07-12T12:58:51.619758-04:00"
   },
   {
    "id": "coops-hilo",
    "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&application=gansett-juice&begin_date=20260712&end_date=20260717&datum=MLLW&station=8455083&time_zone=lst_ldt&units=english&format=json&interval=hilo",
-   "status": "cached",
-   "fetchedAt": "2026-07-12T12:45:23.306759-04:00"
+   "status": "ok",
+   "fetchedAt": "2026-07-12T12:58:51.756032-04:00"
   },
   {
    "id": "ndbc-44097",
    "url": "https://www.ndbc.noaa.gov/data/realtime2/44097.spec",
    "status": "ok",
-   "fetchedAt": "2026-07-12T12:45:23.569494-04:00"
+   "fetchedAt": "2026-07-12T12:58:51.951587-04:00"
   },
   {
    "id": "warmwinds",
    "url": "https://www.warmwinds.com/surf-report",
    "status": "ok",
-   "fetchedAt": "2026-07-12T12:45:24.371539-04:00"
+   "fetchedAt": "2026-07-12T12:58:52.251278-04:00"
   }
  ],
  "times": [
@@ -202,7 +202,7 @@
   "swellDir": 136.0,
   "windMph": 6.0,
   "windDir": 310.0,
-  "waterTempF": null,
+  "waterTempF": 65.0,
   "outlook": [
    {
     "day": "Sunday, July 12",
