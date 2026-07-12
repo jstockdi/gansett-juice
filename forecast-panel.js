@@ -383,30 +383,22 @@ class SurfForecast extends HTMLElement {
       // wind lives OUTSIDE the rim and points in; swell lives inside and points to the
       // centre. Same bearing no longer means same pixels.
       const [wx0, wy0] = pol(w.dir, R + 26), [wx1, wy1] = pol(w.dir, R + 7);
-      const [lx, ly] = pol(w.dir, R + 34);
+      const [lx, ly] = pol(w.dir, R + 36);
       const off = Math.abs(((w.dir - sp.offshoreDir + 180) % 360 + 360) % 360 - 180);
       const kind = off < 45 ? 'offshore' : off > 135 ? 'onshore' : 'cross-shore';
       const col = kind === 'offshore' ? '#199e70' : kind === 'onshore' ? '#e66767' : '#c98500';
+      // the STATE goes in the label, not just the colour. Offshore/cross/onshore is the
+      // single most consequential fact on this dial, and colour alone can't carry it.
       windArt = `<line x1="${wx0.toFixed(1)}" y1="${wy0.toFixed(1)}" x2="${wx1.toFixed(1)}"
           y2="${wy1.toFixed(1)}" stroke="${col}" stroke-width="3" marker-end="url(#wa)"/>
-        <text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" fill="${col}" font-size="9"
-          font-weight="700" text-anchor="middle" dominant-baseline="middle">WIND</text>`;
+        <text x="${lx.toFixed(1)}" y="${(ly - 4).toFixed(1)}" fill="${col}" font-size="9"
+          font-weight="700" text-anchor="middle">WIND ${Math.round(w.spd)}kt</text>
+        <text x="${lx.toFixed(1)}" y="${(ly + 6).toFixed(1)}" fill="${col}" font-size="8"
+          font-weight="600" text-anchor="middle">${kind}</text>`;
       windTxt = `<b style="color:${col}">${Math.round(w.spd)} kt ${compass(w.dir)} · ${kind}</b>`;
     }
-    const [ox, oy] = pol(sp.offshoreDir, R + 4), [ox2, oy2] = pol(sp.offshoreDir, R - 12);
-    const offTick = `<line x1="${ox.toFixed(1)}" y1="${oy.toFixed(1)}" x2="${ox2.toFixed(1)}"
-      y2="${oy2.toFixed(1)}" stroke="#199e70" stroke-width="1.5" stroke-dasharray="2 2" opacity=".8"/>`;
 
-    let swellArt = '';
-    if (sw) {
-      const [sx, sy] = pol(sw.d, R - 20), [sx2, sy2] = pol(sw.d, 22);
-      const [slx, sly] = pol(sw.d, R - 32);
-      swellArt = `<line x1="${sx.toFixed(1)}" y1="${sy.toFixed(1)}" x2="${sx2.toFixed(1)}"
-          y2="${sy2.toFixed(1)}" stroke="#fff" stroke-width="2.5" marker-end="url(#sa)"/>
-        <text x="${slx.toFixed(1)}" y="${sly.toFixed(1)}" fill="#fff" font-size="9"
-          font-weight="700" text-anchor="middle" dominant-baseline="middle"
-          stroke="#15161a" stroke-width="2.5" paint-order="stroke">SWELL</text>`;
-    }
+
 
     const inArc = (arcs, deg) => (arcs || []).some(([a, b]) => deg >= a && deg <= b);
     const sees = sw && inArc(sp.openWindow, sw.d);
@@ -419,29 +411,25 @@ class SurfForecast extends HTMLElement {
     }).join('');
 
     return `<div class="rose">
-      <svg viewBox="-16 -18 252 254" role="img" aria-label="Compass: swell energy by direction, ${
+      <svg viewBox="-22 -24 264 268" role="img" aria-label="Compass: swell energy by direction, ${
         sp.name}'s open swell window, and the wind.">
         <defs>
           <marker id="wa" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto">
             <path d="M0 0 L5 2.5 L0 5 z" fill="context-stroke"/></marker>
-          <marker id="sa" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto">
-            <path d="M0 0 L5 2.5 L0 5 z" fill="#fff"/></marker>
         </defs>
         <circle cx="${CX}" cy="${CY}" r="${R}" fill="#15161a" stroke="#2b2b28"/>
         <circle cx="${CX}" cy="${CY}" r="${(R * 0.62).toFixed(0)}" fill="none" stroke="#242424"/>
         <circle cx="${CX}" cy="${CY}" r="${(R * 0.32).toFixed(0)}" fill="none" stroke="#242424"/>
-        ${petals}${open}${taper}${offTick}${swellArt}${windArt}${ticks}
+        ${petals}${open}${taper}${windArt}${ticks}
       </svg>
       <div class="rose-key">
         <div><span class="d sw"></span><span>Swell <b>energy</b>, next 24h, by where it comes from</span></div>
         <div><span class="d win"></span><span>Sees ${sp.openWindow.map(([a, b]) => `${a}–${b}°`).join(', ')}${
           sp.disputedWindow ? ` <i class="amb">+ ${sp.disputedWindow.map(([a, b]) => `${a}–${b}°`)
             .join(', ')} bent round the point (inferred)</i>` : ''}</span></div>
-        <div><span class="d wd"></span><span><b>WIND</b> arrow (outside the dial):
-          ${windTxt}. Dashed tick on the rim = the bearing that would be offshore here
-          (${compass(sp.offshoreDir)}).</span></div>
-        <div><span class="d swl"></span><span><b>SWELL</b> arrow (inside): where the swell
-          is coming from. Both arrows point the way the water and air are travelling.</span></div>
+        <div><span class="d wd"></span><span>The <b>WIND</b> arrow — the only arrow —
+          shows where the wind blows from: ${windTxt}. When it sits opposite the petals it
+          is blowing into the swell's face: offshore, and clean.</span></div>
         <div class="rose-call">${sw
           ? (sees
             ? `Swell from <b>${sw.d}° ${compass(sw.d)}</b> — <b>inside the window</b>. It reaches this spot.`
