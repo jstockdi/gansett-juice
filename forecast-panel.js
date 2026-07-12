@@ -90,6 +90,21 @@ class SurfForecast extends HTMLElement {
         .why-box li { margin-bottom: 6px; }
         .why-box li:last-child { margin-bottom: 0; }
 
+        .rose { margin-bottom: 10px; }
+        .rose svg { display: block; width: 100%; max-width: 260px; margin: 0 auto 6px; height: auto; }
+        .rose-key { font-size: 11px; color: #86857c; line-height: 1.5; }
+        .rose-key > div { display: flex; gap: 7px; align-items: baseline; margin-bottom: 3px; }
+        .rose-key .d { width: 9px; height: 9px; border-radius: 2px; flex: 0 0 auto;
+          position: relative; top: 1px; }
+        .rose-key .sw { background: #3987e5; }
+        .rose-key .win { background: #9ec5f4; }
+        .rose-key .wd { background: #199e70; }
+        .rose-key .amb { color: #fab219; font-style: normal; }
+        .rose-key b { color: #c3c2b7; }
+        .rose-call { display: block !important; margin-top: 7px; padding-top: 7px;
+          border-top: 1px solid #2b2b28; color: #c3c2b7; font-size: 11.5px; }
+        .rose-call b { color: #fff; }
+
         /* ---- what's actually happening right now ---- */
         .now { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px;
           background: #34342f; border: 1px solid #34342f; border-radius: 10px;
@@ -99,7 +114,12 @@ class SurfForecast extends HTMLElement {
           color: #86857c; }
         .now .v { font-size: 14px; font-weight: 600; margin-top: 2px; white-space: nowrap; }
         .now .u { font-size: 11px; color: #86857c; font-weight: 400; }
-        @media (min-width: 460px) { .now { grid-template-columns: repeat(4, 1fr); } }
+        /* 5 cells in a 2-col grid leaves an orphan -- let the last one span */
+        .now > div:last-child:nth-child(odd) { grid-column: 1 / -1; }
+        @media (min-width: 460px) {
+          .now { grid-template-columns: repeat(5, 1fr); }
+          .now > div:last-child:nth-child(odd) { grid-column: auto; }
+        }
 
         .tabs { display: flex; gap: 6px; margin-bottom: 10px; }
         .tabs button { flex: 1; background: #1a1a19; color: #c3c2b7; border: 1px solid #34342f;
@@ -264,6 +284,136 @@ class SurfForecast extends HTMLElement {
     return m;
   }
 
+  /* ==================================================================== *
+   *  The compass rose — the whole decision in one picture.                *
+   *                                                                       *
+   *  Three vectors, and they are the three that decide it:                *
+   *    1. WHERE THE ENERGY IS COMING FROM — petals, sized by swell ENERGY *
+   *       (kW/m, ~ H^2*T). Not height: height cannot tell 3ft@6s from     *
+   *       3ft@14s, which differ 2.3x in punch.                            *
+   *    2. WHETHER THIS SPOT CAN SEE IT — the shaded window arc. The point *
+   *       and Block Island block huge bearings, so here direction is a    *
+   *       GATE, not a refinement.                                         *
+   *    3. WHETHER THE WIND WILL WRECK IT — the wind arrow, plus a dashed  *
+   *       tick at the bearing that is offshore for THIS spot.             *
+   *                                                                       *
+   *  No general surf forecast can draw this — it needs per-spot window    *
+   *  geometry. hopewaves shows the rose and leaves the spot reasoning to  *
+   *  you; this closes that loop.                                          *
+   *                                                                       *
+   *  Convention: swell and wind bearings are both meteorological (the     *
+   *  direction it comes FROM), so the arrows point INWARD — the way the   *
+   *  water and the air are actually travelling.                           *
+   * ==================================================================== */
+  _rose(spotId) {
+    const d = this._d;
+    const sp = d.spots.find(s => s.id === spotId);
+    if (!sp || !sp.openWindow) return '';
+
+    const R = 92, CX = 110, CY = 106;
+    const pol = (deg, r) => [                    // bearing (0=N, clockwise) -> x,y
+      CX + r * Math.sin(deg * Math.PI / 180),
+      CY - r * Math.cos(deg * Math.PI / 180),
+    ];
+    const arc = (a0, a1, r) => {
+      const [x0, y0] = pol(a0, r), [x1, y1] = pol(a1, r);
+      return `M ${x0.toFixed(1)} ${y0.toFixed(1)} A ${r} ${r} 0 ${
+        (a1 - a0 + 360) % 360 > 180 ? 1 : 0} 1 ${x1.toFixed(1)} ${y1.toFixed(1)}`;
+    };
+    const wedge = (a0, a1, r) => {
+      const [x0, y0] = pol(a0, r), [x1, y1] = pol(a1, r);
+      return `M ${CX} ${CY} L ${x0.toFixed(1)} ${y0.toFixed(1)} A ${r} ${r} 0 0 1 ${
+        x1.toFixed(1)} ${y1.toFixed(1)} Z`;
+    };
+
+    // 1. energy petals — next 24h of swell + windwave, binned by bearing, summed by ENERGY
+    const bins = new Array(16).fill(0);
+    for (let i = 0; i < Math.min(24, d.times.length); i++) {
+      for (const key of ['swell', 'windWave']) {
+        const c = d.conditions[key][i];
+        if (c && c.e) bins[Math.round(c.d / 22.5) % 16] += c.e;
+      }
+    }
+    const peak = Math.max(...bins, 0.0001);
+    // sqrt: energy spans ~30x between a flat day and a hurricane, and a linear radius
+    // would render every ordinary day as an invisible nub
+    const petals = bins.map((e, k) => e <= 0 ? '' : `<path d="${
+      wedge(k * 22.5 - 9, k * 22.5 + 9, 14 + Math.sqrt(e / peak) * (R - 28))
+    }" fill="#3987e5" opacity="${(0.35 + 0.5 * (e / peak)).toFixed(2)}"/>`).join('');
+
+    // 2. what this spot can actually see
+    const open = sp.openWindow.map(([a, b]) =>
+      `<path d="${arc(a, b, R - 4)}" stroke="#9ec5f4" stroke-width="7" fill="none"/>`).join('');
+    const taper = (sp.disputedWindow || []).map(([a, b]) =>
+      `<path d="${arc(a, b, R - 4)}" stroke="#fab219" stroke-width="7" fill="none"
+             stroke-dasharray="3 3" opacity=".85"/>`).join('');
+
+    // 3. wind — and where offshore lies for THIS spot
+    const w = d.conditions.wind[FC_REGION(spotId)][0];
+    const sw = d.conditions.swell[0];
+    let windArt = '', windTxt = '—';
+    if (w) {
+      const [hx, hy] = pol(w.dir, R - 14), [tx, ty] = pol(w.dir, 30);
+      const off = Math.abs(((w.dir - sp.offshoreDir + 180) % 360 + 360) % 360 - 180);
+      const kind = off < 45 ? 'offshore' : off > 135 ? 'onshore' : 'cross-shore';
+      const col = kind === 'offshore' ? '#199e70' : kind === 'onshore' ? '#e66767' : '#c98500';
+      windArt = `<line x1="${hx.toFixed(1)}" y1="${hy.toFixed(1)}" x2="${tx.toFixed(1)}"
+        y2="${ty.toFixed(1)}" stroke="${col}" stroke-width="2.5" marker-end="url(#wa)"/>`;
+      windTxt = `<b style="color:${col}">${Math.round(w.spd)} kt ${compass(w.dir)} · ${kind}</b>`;
+    }
+    const [ox, oy] = pol(sp.offshoreDir, R + 4), [ox2, oy2] = pol(sp.offshoreDir, R - 12);
+    const offTick = `<line x1="${ox.toFixed(1)}" y1="${oy.toFixed(1)}" x2="${ox2.toFixed(1)}"
+      y2="${oy2.toFixed(1)}" stroke="#199e70" stroke-width="1.5" stroke-dasharray="2 2" opacity=".8"/>`;
+
+    let swellArt = '';
+    if (sw) {
+      const [sx, sy] = pol(sw.d, R - 14), [sx2, sy2] = pol(sw.d, 24);
+      swellArt = `<line x1="${sx.toFixed(1)}" y1="${sy.toFixed(1)}" x2="${sx2.toFixed(1)}"
+        y2="${sy2.toFixed(1)}" stroke="#fff" stroke-width="2" marker-end="url(#sa)"/>`;
+    }
+
+    const inArc = (arcs, deg) => (arcs || []).some(([a, b]) => deg >= a && deg <= b);
+    const sees = sw && inArc(sp.openWindow, sw.d);
+    const tapers = sw && inArc(sp.disputedWindow, sw.d);
+
+    const ticks = ['N', 'E', 'S', 'W'].map((L, k) => {
+      const [x, y] = pol(k * 90, R + 14);
+      return `<text x="${x.toFixed(1)}" y="${(y + 4).toFixed(1)}" text-anchor="middle"
+        font-size="10" fill="#86857c">${L}</text>`;
+    }).join('');
+
+    return `<div class="rose">
+      <svg viewBox="0 0 220 214" role="img" aria-label="Compass: swell energy by direction, ${
+        sp.name}'s open swell window, and the wind.">
+        <defs>
+          <marker id="wa" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto">
+            <path d="M0 0 L5 2.5 L0 5 z" fill="context-stroke"/></marker>
+          <marker id="sa" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto">
+            <path d="M0 0 L5 2.5 L0 5 z" fill="#fff"/></marker>
+        </defs>
+        <circle cx="${CX}" cy="${CY}" r="${R}" fill="#15161a" stroke="#2b2b28"/>
+        <circle cx="${CX}" cy="${CY}" r="${(R * 0.62).toFixed(0)}" fill="none" stroke="#242424"/>
+        <circle cx="${CX}" cy="${CY}" r="${(R * 0.32).toFixed(0)}" fill="none" stroke="#242424"/>
+        ${petals}${open}${taper}${offTick}${swellArt}${windArt}${ticks}
+      </svg>
+      <div class="rose-key">
+        <div><span class="d sw"></span><span>Swell <b>energy</b>, next 24h, by where it comes from</span></div>
+        <div><span class="d win"></span><span>Sees ${sp.openWindow.map(([a, b]) => `${a}–${b}°`).join(', ')}${
+          sp.disputedWindow ? ` <i class="amb">+ ${sp.disputedWindow.map(([a, b]) => `${a}–${b}°`)
+            .join(', ')} bent round the point (inferred)</i>` : ''}</span></div>
+        <div><span class="d wd"></span><span>Wind ${windTxt}. Dashed tick = offshore here (${
+          compass(sp.offshoreDir)}).</span></div>
+        <div class="rose-call">${sw
+          ? (sees
+            ? `Swell from <b>${sw.d}° ${compass(sw.d)}</b> — <b>inside the window</b>. It reaches this spot.`
+            : tapers
+              ? `Swell from <b>${sw.d}° ${compass(sw.d)}</b> — only bends in around the headland. Heavily attenuated.`
+              : `Swell from <b>${sw.d}° ${compass(sw.d)}</b> — <b>blocked</b>. It never gets here.`)
+          : 'No swell data.'}</div>
+      </div>
+    </div>`;
+  }
+
   /* The reasoning, not just the verdict. Precomputed by the agent (summary.rationale)
      so the UI stays dumb. It exists because "not worth it" is a judgement, and a
      judgement you can't inspect is just an assertion -- especially when it disagrees
@@ -310,6 +460,7 @@ class SurfForecast extends HTMLElement {
     const cell = (k, v, u) => `<div><div class="k">${k}</div>
       <div class="v">${v}${u ? ` <span class="u">${u}</span>` : ''}</div></div>`;
     return `<div class="now">
+      ${cell('Energy', sw ? sw.e : '–', 'kW/m')}
       ${cell('Swell', sw ? sw.h : '–', sw ? `ft ${sw.t}s ${compass(sw.d)}` : '')}
       ${cell('Wind', w ? Math.round(w.spd) : '–', w ? `kt ${compass(w.dir)}` : '')}
       ${cell('Tide', td ? td.ft : '–', td ? `ft ${td.stage}` : '')}
@@ -372,8 +523,10 @@ class SurfForecast extends HTMLElement {
     }).join('');
     const fact = (k, v) => `<div class="fact"><span class="k">${k}</span><span class="v">${v}</span></div>`;
     return `<div class="strip">${strip}</div>
+      ${this._rose(id)}
       <div class="facts">
         ${fact('Surf', `${c.hEff} ft @ ${c.tEff}s`)}
+        ${fact('Energy', `${c.eEff ?? '–'} kW/m`)}
         ${fact('From', compass(c.dEff))}
         ${w ? fact('Wind', `${Math.round(w.spd)} kt ${compass(w.dir)}`) : ''}
         ${td ? fact('Tide', `${td.ft} ft ${td.stage}`) : ''}

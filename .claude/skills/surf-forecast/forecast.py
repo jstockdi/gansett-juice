@@ -162,10 +162,27 @@ def fetch_marine(src, window=None):
     return out
 
 
+FT_TO_M = 0.3048
+
+
+def power(h_ft, t_s):
+    """Deep-water wave power, kW per metre of crest -- what surfers call "swell energy".
+
+        P = (rho g^2 / 64pi) H^2 T  ~=  0.5 * H(m)^2 * T(s)
+
+    This is the honest scalar, and it is why height alone is a bad headline. Energy
+    goes as H^2*T, so 3ft@14s carries 2.3x the punch of 3ft@6s at the SAME height --
+    a difference height literally cannot express. Over our own data, Hurricane Lee was
+    4.3x today's height but 34x its energy. Height is what you photograph; energy is
+    what you feel."""
+    h = h_ft * FT_TO_M
+    return 0.5 * h * h * t_s
+
+
 def component(h, t, d):
     if h is None or t is None or d is None:
         return None
-    return {"h": round(h, 2), "t": round(t, 1), "d": int(d)}
+    return {"h": round(h, 2), "t": round(t, 1), "d": int(d), "e": round(power(h, t), 2)}
 
 
 # -------------------------------------------------------------------- wind
@@ -311,7 +328,8 @@ def fetch_buoy(src):
                 continue                                  # all-MM row, try the next
             obs = {"at": at.isoformat(), "buoy": bid}
             if None not in (swh, swp, swd):
-                obs["swell"] = {"h": round(swh * M_TO_FT, 1), "t": swp, "d": int(swd)}
+                h = round(swh * M_TO_FT, 1)
+                obs["swell"] = {"h": h, "t": swp, "d": int(swd), "e": round(power(h, swp), 2)}
             if None not in (wwh, wwp, wwd):
                 obs["windWave"] = {"h": round(wwh * M_TO_FT, 1), "t": wwp, "d": int(wwd)}
             return obs
@@ -550,7 +568,9 @@ def effective_swell(cond, spot):
         return None
     h_eff = math.sqrt(sum(h * h for h, _, _ in parts))
     dom = max(parts, key=lambda p: p[0])                  # dominant = biggest arriving
-    return {"h": round(h_eff, 2), "t": dom[1], "d": dom[2]}
+    # energy of what actually reaches THIS spot, after the headland has had its say
+    return {"h": round(h_eff, 2), "t": dom[1], "d": dom[2],
+            "e": round(power(h_eff, dom[1]), 2)}
 
 
 def q_size(h, s):
@@ -642,7 +662,7 @@ def score_step(cond, wind, tide, spot):
         "s": round(s),
         "status": status,
         "limiting": "none" if q[worst] >= 0.85 else worst,
-        "hEff": eff["h"], "tEff": eff["t"], "dEff": eff["d"],
+        "hEff": eff["h"], "tEff": eff["t"], "dEff": eff["d"], "eEff": eff["e"],
         "q": q,
     }
     if miss:
@@ -738,8 +758,15 @@ def build(use_cache=True, window=None):
         "observed": observed,
         "groundTruth": truth,
         "conditions": conditions,
+        # openWindow / disputedWindow / offshoreDir ship to the client so the compass
+        # rose can draw WHAT THIS SPOT CAN SEE against where the energy is actually
+        # coming from. That overlay is the whole app in one picture, and it is the one
+        # chart no general surf forecast can draw -- they don't have per-spot geometry.
         "spots": [{k: s[k] for k in
-                   ("id", "name", "lat", "lon", "facing", "bottom", "confidence", "notes")}
+                   ("id", "name", "lat", "lon", "facing", "offshoreDir", "openWindow",
+                    "bottom", "confidence", "notes")
+                   if k in s} | ({"disputedWindow": s["disputedWindow"]}
+                                 if s.get("disputedWindow") else {})
                   for s in spots],
         "scores": scores,
         "daylight": daylight,
