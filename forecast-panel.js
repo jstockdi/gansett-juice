@@ -174,6 +174,16 @@ class SurfForecast extends HTMLElement {
           .ranked { display: none; }
           .grid { display: block; }
         }
+        .deck { display: grid; grid-template-columns: minmax(0,1fr) 274px; gap: 14px;
+          align-items: start; }
+        .rosepane { background: #1a1a19; border: 1px solid #34342f; border-radius: 10px;
+          padding: 12px; }
+        .rosepane-hd { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+        .rosepane-hd span { display: block; font-size: 10.5px; color: #86857c;
+          font-weight: 400; margin-top: 1px; }
+        .spotcell[data-rose] { cursor: pointer; }
+        .spotcell[data-rose]:hover { color: #fff; }
+        .spotcell.on { color: #fff; box-shadow: inset 2px 0 0 #9ec5f4; }
         .scroll { overflow-x: auto; border: 1px solid #34342f; border-radius: 10px; background: #1a1a19; }
         table { border-collapse: collapse; }
         th, td { padding: 0; }
@@ -548,7 +558,7 @@ class SurfForecast extends HTMLElement {
     const fmt = day => new Date(day + 'T12:00:00')
       .toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric' });
 
-    let h = '<div class="scroll"><table><thead><tr><th class="spotcell"></th>';
+    let h = '<div class="deck"><div class="scroll"><table><thead><tr><th class="spotcell"></th>';
     days.forEach(dd => { h += `<th class="dayhdr daysep" colspan="${dd.n}">${fmt(dd.day)}</th>`; });
     h += '</tr></thead><tbody>';
 
@@ -559,7 +569,9 @@ class SurfForecast extends HTMLElement {
       const daylit = row.map((c, i) => (d.daylight[i] && c.s !== null) ? c.s : -1);
       const peak = Math.max(...daylit);
       let done = false;
-      h += `<tr><th class="spotcell">${sp.name}</th>`;
+      const sel = (this._roseSpot || this._defaultRoseSpot()) === sp.id;
+      h += `<tr><th class="spotcell${sel ? ' on' : ''}" data-rose="${sp.id}"
+              title="Show ${sp.name} on the compass">${sp.name}</th>`;
       row.forEach((c, i) => {
         const cls = [ 'cell' ];
         if (days.some(dd => dd.start === i)) cls.push('daysep');
@@ -574,13 +586,25 @@ class SurfForecast extends HTMLElement {
       });
       h += '</tr>';
     }
-    return h + '</tbody></table></div><div class="key">'
+    const rs = this._roseSpot || this._defaultRoseSpot();
+    h += `</tbody></table></div>
+      <aside class="rosepane">
+        <div class="rosepane-hd">${d.spots.find(x => x.id === rs).name}
+          <span>click any spot to change</span></div>
+        ${this._rose(rs)}
+      </aside></div>`;
+    return h + '<div class="key">'
       + '<span class="sw">worse <span class="ramp">'
       + FC_RAMP.map((c, i) => `<i style="background:${c};height:${6 + i * 4}px"></i>`).join('')
       + '</span> better</span>'
       + '<span class="sw"><span class="nightsw"></span> dark — never recommended</span>'
       + '<span class="sw"><span class="hatch"></span> no data (never “bad”)</span>'
       + '<span class="sw"><span class="dot"></span> diffraction taper — inferred</span></div>';
+  }
+
+  _defaultRoseSpot() {
+    const b = this._d.summary.bestToday;
+    return b && b.length ? b[0].spot : this._d.spots[0].id;
   }
 
   _foot() {
@@ -607,6 +631,8 @@ class SurfForecast extends HTMLElement {
         this._open = this._open === r.dataset.spot ? null : r.dataset.spot;
         this.render();
       }));
+    this.shadowRoot.querySelectorAll('.spotcell[data-rose]').forEach(c =>
+      c.addEventListener('click', () => { this._roseSpot = c.dataset.rose; this.render(); }));
     const f = this.shadowRoot.getElementById('flip');
     if (f) f.addEventListener('click', () => { this._showFlat = !this._showFlat; this.render(); });
   }
