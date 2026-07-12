@@ -336,6 +336,60 @@ def fetch_buoy(src):
     return None
 
 
+# =================================================================== spectrum
+
+SPEC_PAIR = re.compile(r"([\d.]+)\s*\(([\d.]+)\)")
+
+
+def fetch_spectrum(src):
+    """The raw wave energy spectrum from the buoy: energy density (m^2/Hz) across
+    ~64 frequency bins. OBSERVED, right now -- there is no forecast equivalent.
+
+    Why bother, when we already have height/period/direction? Because those three
+    numbers cannot tell one clean 3ft groundswell from two crossing 2ft swells --
+    they read identically. The spectrum can. A tall narrow peak is one organised
+    swell; two peaks are crossed swells and a confused lineup; a low broad hump at
+    4-6s is slop. Nothing else in this app sees that.
+
+    It is also an independent check on the model: the buoy is MEASURING, not
+    predicting. GFS-Wave gives us partitions, not a spectrum, so a forecast
+    spectrum is not something we can honestly draw -- and we don't."""
+    for bid in BUOYS:
+        body = src.text(f"ndbc-spec-{bid}", f"https://www.ndbc.noaa.gov/data/realtime2/{bid}.data_spec",
+                        "ndbc")
+        if not body:
+            continue
+        rows = [l for l in body.splitlines() if not l.startswith("#")]
+        if not rows:
+            continue
+        f = rows[0].split()
+        try:
+            at = datetime(int(f[0]), int(f[1]), int(f[2]), int(f[3]), int(f[4]),
+                          tzinfo=timezone.utc).astimezone(TZ)
+        except ValueError:
+            continue
+
+        bins = [(float(fr), float(e)) for e, fr in SPEC_PAIR.findall(rows[0]) if float(fr) > 0]
+        bins = [(fr, e) for fr, e in bins if 0.03 <= fr <= 0.5]        # 2s..33s, the surf band
+        total = sum(e for _, e in bins)
+        if not bins or total <= 0:
+            continue
+
+        pf, pe = max(bins, key=lambda x: x[1])
+        # what fraction of the energy sits near the peak -- our "is it organised?" number
+        near = sum(e for fr, e in bins if abs(fr - pf) <= 0.2 * pf)
+        return {
+            "buoy": bid,
+            "at": at.isoformat(),
+            "peakPeriod": round(1 / pf, 1),
+            "organization": round(near / total * 100),
+            # Hs = 4*sqrt(m0); m0 is the spectral area. A cross-check on the model.
+            "hsFt": round(4 * math.sqrt(sum(e * 0.005 for _, e in bins)) / FT_TO_M, 1),
+            "bins": [[round(1 / fr, 1), round(e, 4)] for fr, e in bins],   # [period_s, m^2/Hz]
+        }
+    return None
+
+
 # ============================================================== ground truth
 
 WW_URL = "https://www.warmwinds.com/surf-report"
@@ -702,6 +756,7 @@ def build(use_cache=True, window=None):
     heights, ranges = fetch_tide(src, start.date(), (start + timedelta(hours=steps)).date())
     observed = None if window else fetch_buoy(src)
     truth = None if window else fetch_warmwinds(src)   # ground truth, live runs only
+    spectrum = None if window else fetch_spectrum(src)  # observed only; no forecast equivalent
 
     registry = json.loads((HERE / "spots.json").read_text())
     spots = registry["spots"]
@@ -756,6 +811,7 @@ def build(use_cache=True, window=None):
         "sources": src.log,
         "times": times,
         "observed": observed,
+        "spectrum": spectrum,
         "groundTruth": truth,
         "conditions": conditions,
         # openWindow / disputedWindow / offshoreDir ship to the client so the compass

@@ -90,6 +90,22 @@ class SurfForecast extends HTMLElement {
         .why-box li { margin-bottom: 6px; }
         .why-box li:last-child { margin-bottom: 0; }
 
+        .ecurve { margin-bottom: 10px; }
+        .ec-hd { font-size: 11px; color: #86857c; margin-bottom: 4px; }
+        .ec-hd b { color: #c3c2b7; }
+        .ecurve svg { display: block; width: 100%; height: 46px; background: #15161a;
+          border: 1px solid #2b2b28; border-radius: 6px; }
+
+        .spec-body { padding: 0 14px 12px; }
+        .spec-body svg { display: block; width: 100%; height: auto; background: #15161a;
+          border: 1px solid #2b2b28; border-radius: 6px; margin-bottom: 8px; }
+        .spec-key { font-size: 11.5px; color: #86857c; line-height: 1.55; }
+        .spec-key b { color: #c3c2b7; }
+        .spec-num { display: flex; gap: 14px; margin-bottom: 6px; }
+        .spec-num span { font-size: 11px; color: #86857c; }
+        .spec-num b { color: #fff; font-size: 14px; display: block; }
+        .obs { color: #6a695f; }
+
         .rose { margin-bottom: 10px; }
         .rose svg { display: block; width: 100%; max-width: 260px; margin: 0 auto 6px; height: auto; }
         .rose-key { font-size: 11px; color: #86857c; line-height: 1.5; }
@@ -237,7 +253,7 @@ class SurfForecast extends HTMLElement {
   render() {
     const d = this._d;
     this.shadowRoot.getElementById('wrap').innerHTML =
-      this._verdict() + this._now() +
+      this._verdict() + this._spectrum() + this._now() +
       `<div class="ranked">${this._ranked()}</div>
        <div class="grid">${this._heatmap()}</div>` + this._foot();
     this._bind();
@@ -533,6 +549,7 @@ class SurfForecast extends HTMLElement {
     }).join('');
     const fact = (k, v) => `<div class="fact"><span class="k">${k}</span><span class="v">${v}</span></div>`;
     return `<div class="strip">${strip}</div>
+      ${this._energyCurve(id)}
       ${this._rose(id)}
       <div class="facts">
         ${fact('Surf', `${c.hEff} ft @ ${c.tEff}s`)}
@@ -605,6 +622,100 @@ class SurfForecast extends HTMLElement {
   _defaultRoseSpot() {
     const b = this._d.summary.bestToday;
     return b && b.length ? b[0].spot : this._d.spots[0].id;
+  }
+
+  /* Energy arriving AT THIS SPOT over the 5 days. This is the chart the app exists to
+     draw: the same ocean delivers a DIFFERENT energy curve to each spot, because the
+     headland gates each one differently. A height-over-time chart would flatten that
+     away -- and would also hide the 3ft@6s vs 3ft@14s distinction entirely. */
+  _energyCurve(spotId) {
+    const d = this._d, row = d.scores[spotId];
+    const W = 300, H = 46, PAD = 3;
+    const vals = row.map(c => (c.s === null ? null : (c.eEff ?? 0)));
+    const max = Math.max(...vals.filter(v => v !== null), 0.01);
+    const sx = W / (vals.length - 1);
+    const y = v => H - PAD - (v / max) * (H - PAD * 2);
+
+    let line = '', pen = false;
+    vals.forEach((v, i) => {
+      if (v === null) { pen = false; return; }
+      line += (pen ? 'L' : 'M') + (i * sx).toFixed(1) + ' ' + y(v).toFixed(1) + ' ';
+      pen = true;
+    });
+    const night = [];
+    for (let i = 0; i < vals.length; i++) {
+      if (d.daylight[i]) continue;
+      let j = i; while (j < vals.length && !d.daylight[j]) j++;
+      night.push(`<rect x="${(i * sx).toFixed(1)}" y="0" width="${((j - i) * sx).toFixed(1)}"
+        height="${H}" fill="#000" opacity=".3"/>`);
+      i = j;
+    }
+    const pk = Math.max(...vals.filter(v => v !== null), 0);
+    return `<div class="ecurve">
+      <div class="ec-hd">Energy reaching this spot · peak <b>${pk.toFixed(2)} kW/m</b> · 5 days</div>
+      <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+        ${night.join('')}
+        <path d="${line.trim()} L ${W} ${H} L 0 ${H} Z" fill="#3987e5" opacity=".18"/>
+        <path d="${line.trim()}" fill="none" stroke="#6da7ec" stroke-width="1.6"
+              stroke-linejoin="round"/>
+      </svg>
+    </div>`;
+  }
+
+  /* The buoy's raw energy spectrum. OBSERVED, not forecast -- GFS-Wave hands us
+     partitions, not a spectrum, so there is no honest forecast version of this chart
+     and we do not fake one by drawing a curve through two points.
+
+     It earns its place by showing the one thing height/period/direction cannot:
+     whether the energy is ORGANISED. One tall narrow peak = a clean groundswell.
+     Two peaks = crossed swells, a confused lineup. A low broad hump at 4-6s = slop.
+     All three read identically as "3 ft @ 9 s". */
+  _spectrum() {
+    const sp = this._d.spectrum;
+    if (!sp || !sp.bins || !sp.bins.length) return '';
+    const W = 300, H = 76, PAD = 5;
+    const tMin = 2, tMax = 22;
+    const bins = sp.bins.filter(([t]) => t >= tMin && t <= tMax).sort((a, b) => a[0] - b[0]);
+    if (!bins.length) return '';
+    const max = Math.max(...bins.map(b => b[1]), 0.0001);
+    const x = t => PAD + (t - tMin) / (tMax - tMin) * (W - PAD * 2);
+    const bw = Math.max(2, (W - PAD * 2) / bins.length - 1);
+
+    const bars = bins.map(([t, e]) => {
+      const h = (e / max) * (H - 18);
+      const near = Math.abs(t - sp.peakPeriod) < 0.6;
+      return `<rect x="${(x(t) - bw / 2).toFixed(1)}" y="${(H - 13 - h).toFixed(1)}"
+        width="${bw.toFixed(1)}" height="${Math.max(0.6, h).toFixed(1)}" rx="1"
+        fill="${near ? '#cde2fb' : '#3987e5'}" opacity="${near ? 1 : 0.72}"/>`;
+    }).join('');
+    const ticks = [4, 8, 12, 16, 20].map(t =>
+      `<text x="${x(t).toFixed(1)}" y="${H - 2}" font-size="7.5" fill="#6a695f"
+         text-anchor="middle">${t}s</text>`).join('');
+
+    const org = sp.organization;
+    const read = org >= 60 ? 'one clean, organised swell'
+      : org >= 40 ? 'mostly one swell, with some clutter'
+      : 'energy smeared across periods — crossed swells or windblown slop';
+
+    return `<details class="why-box spec">
+      <summary>What’s actually in the water right now</summary>
+      <div class="spec-body">
+        <svg viewBox="0 0 ${W} ${H}">${bars}${ticks}</svg>
+        <div class="spec-key">
+          <div class="spec-num">
+            <span>Peak <b>${sp.peakPeriod}s</b></span>
+            <span>Hs <b>${sp.hsFt} ft</b></span>
+            <span>Organised <b>${org}%</b></span>
+          </div>
+          Reads as <b>${read}</b>.
+          Height, period and direction look identical for one clean swell and two
+          crossing ones — this is the only chart that tells them apart.
+          <br><span class="obs">Buoy ${sp.buoy} (Block Island), measured ${fcWhen(sp.at)} —
+          <b>observed, not forecast</b>. There is no forecast spectrum: the wave model
+          gives partitions, not a spectrum.</span>
+        </div>
+      </div>
+    </details>`;
   }
 
   _foot() {
