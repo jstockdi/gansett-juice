@@ -684,7 +684,7 @@ class SurfForecast extends HTMLElement {
   _spectrum() {
     const sp = this._d.spectrum;
     if (!sp || !sp.bins || !sp.bins.length) return '';
-    const W = 300, H = 76, PAD = 5;
+    const W = 300, H = 84, PAD = 5;
     const tMin = 2, tMax = 22;
     const bins = sp.bins.filter(([t]) => t >= tMin && t <= tMax).sort((a, b) => a[0] - b[0]);
     if (!bins.length) return '';
@@ -701,7 +701,25 @@ class SurfForecast extends HTMLElement {
     }).join('');
     const ticks = [4, 8, 12, 16, 20].map(t =>
       `<text x="${x(t).toFixed(1)}" y="${H - 2}" font-size="7.5" fill="#6a695f"
-         text-anchor="middle">${t}s</text>`).join('');
+         text-anchor="middle">${t}</text>`).join('');
+
+    // y axis: without it a tall bar is just "the tallest bar", which says nothing about
+    // how much energy is actually in the water
+    const half = (max / 2);
+    const gy = v => H - 13 - (v / max) * (H - 18);
+    const axis = `
+      <line x1="0" y1="${(H - 13).toFixed(1)}" x2="${W}" y2="${(H - 13).toFixed(1)}"
+        stroke="#2b2b28" stroke-width="1"/>
+      <line x1="0" y1="${gy(max).toFixed(1)}" x2="${W}" y2="${gy(max).toFixed(1)}"
+        stroke="#2b2b28" stroke-width="1" stroke-dasharray="2 3"/>
+      <line x1="0" y1="${gy(half).toFixed(1)}" x2="${W}" y2="${gy(half).toFixed(1)}"
+        stroke="#242422" stroke-width="1" stroke-dasharray="2 3"/>
+      <text x="2" y="${(gy(max) - 2).toFixed(1)}" font-size="7.5" fill="#86857c">
+        ${max.toFixed(2)} m²/Hz</text>
+      <text x="2" y="${(gy(half) - 2).toFixed(1)}" font-size="7" fill="#6a695f">
+        ${half.toFixed(2)}</text>
+      <text x="${W / 2}" y="${H + 8}" font-size="7.5" fill="#6a695f"
+        text-anchor="middle">wave period (seconds)</text>`;
 
     const org = sp.organization;
     const read = org >= 60 ? 'one clean, organised swell'
@@ -711,14 +729,15 @@ class SurfForecast extends HTMLElement {
     return `<details class="why-box spec">
       <summary>What’s actually in the water right now</summary>
       <div class="spec-body">
-        <svg viewBox="0 0 ${W} ${H}">${bars}${ticks}</svg>
+        <svg viewBox="0 0 ${W} ${H + 10}">${axis}${bars}${ticks}</svg>
         <div class="spec-key">
           <div class="spec-num">
             <span>Peak <b>${sp.peakPeriod}s</b></span>
             <span>Hs <b>${sp.hsFt} ft</b></span>
             <span>Organised <b>${org}%</b></span>
           </div>
-          Reads as <b>${read}</b>.
+          Bar height = how much wave energy sits at that period
+          (<b>${max.toFixed(2)} m²/Hz</b> at the peak). Reads as <b>${read}</b>.
           Height, period and direction look identical for one clean swell and two
           crossing ones — this is the only chart that tells them apart.
           <br><span class="obs">Buoy ${sp.buoy} (Block Island), measured ${fcWhen(sp.at)} —
