@@ -1,58 +1,63 @@
 {
  "schema": "gansett-juice/forecast@1",
- "generatedAt": "2026-07-12T11:20:49.006111-04:00",
+ "generatedAt": "2026-07-12T12:45:24.391048-04:00",
  "timezone": "America/New_York",
  "grid": {
   "interval": "PT1H",
   "steps": 120,
-  "start": "2026-07-12T12:00:00-04:00"
+  "start": "2026-07-12T13:00:00-04:00"
  },
  "sources": [
   {
    "id": "gfswave016",
    "url": "https://marine-api.open-meteo.com/v1/marine?latitude=41.36&longitude=-71.49&hourly=swell_wave_height,swell_wave_direction,swell_wave_period,wind_wave_height,wind_wave_direction,wind_wave_period&timezone=America%2FNew_York&length_unit=imperial&models=ncep_gfswave016&forecast_days=6",
-   "status": "ok",
-   "fetchedAt": "2026-07-12T11:20:47.238660-04:00"
+   "status": "cached",
+   "fetchedAt": "2026-07-12T12:45:21.499904-04:00"
   },
   {
    "id": "nws-BOX-66-56",
    "url": "https://api.weather.gov/gridpoints/BOX/66,56",
    "status": "ok",
-   "fetchedAt": "2026-07-12T11:20:47.685603-04:00"
+   "fetchedAt": "2026-07-12T12:45:22.223475-04:00"
   },
   {
    "id": "nws-BOX-65-53",
    "url": "https://api.weather.gov/gridpoints/BOX/65,53",
    "status": "ok",
-   "fetchedAt": "2026-07-12T11:20:47.962279-04:00"
+   "fetchedAt": "2026-07-12T12:45:22.729725-04:00"
   },
   {
    "id": "nws-BOX-63-54",
    "url": "https://api.weather.gov/gridpoints/BOX/63,54",
    "status": "ok",
-   "fetchedAt": "2026-07-12T11:20:48.313601-04:00"
+   "fetchedAt": "2026-07-12T12:45:23.302391-04:00"
   },
   {
    "id": "coops-hourly",
    "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&application=gansett-juice&begin_date=20260712&end_date=20260717&datum=MLLW&station=8455083&time_zone=lst_ldt&units=english&format=json&interval=h",
-   "status": "ok",
-   "fetchedAt": "2026-07-12T11:20:48.478741-04:00"
+   "status": "cached",
+   "fetchedAt": "2026-07-12T12:45:23.306113-04:00"
   },
   {
    "id": "coops-hilo",
    "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&application=gansett-juice&begin_date=20260712&end_date=20260717&datum=MLLW&station=8455083&time_zone=lst_ldt&units=english&format=json&interval=hilo",
-   "status": "ok",
-   "fetchedAt": "2026-07-12T11:20:48.668556-04:00"
+   "status": "cached",
+   "fetchedAt": "2026-07-12T12:45:23.306759-04:00"
   },
   {
    "id": "ndbc-44097",
    "url": "https://www.ndbc.noaa.gov/data/realtime2/44097.spec",
    "status": "ok",
-   "fetchedAt": "2026-07-12T11:20:48.989060-04:00"
+   "fetchedAt": "2026-07-12T12:45:23.569494-04:00"
+  },
+  {
+   "id": "warmwinds",
+   "url": "https://www.warmwinds.com/surf-report",
+   "status": "ok",
+   "fetchedAt": "2026-07-12T12:45:24.371539-04:00"
   }
  ],
  "times": [
-  "2026-07-12T12:00:00-04:00",
   "2026-07-12T13:00:00-04:00",
   "2026-07-12T14:00:00-04:00",
   "2026-07-12T15:00:00-04:00",
@@ -171,29 +176,53 @@
   "2026-07-17T08:00:00-04:00",
   "2026-07-17T09:00:00-04:00",
   "2026-07-17T10:00:00-04:00",
-  "2026-07-17T11:00:00-04:00"
+  "2026-07-17T11:00:00-04:00",
+  "2026-07-17T12:00:00-04:00"
  ],
  "observed": {
-  "at": "2026-07-12T10:56:00-04:00",
+  "at": "2026-07-12T12:26:00-04:00",
   "buoy": "44097",
   "swell": {
-   "h": 0.3,
+   "h": 0.7,
    "t": 10.5,
    "d": 135
   },
   "windWave": {
    "h": 1.6,
    "t": 9.9,
-   "d": 157
+   "d": 135
   }
+ },
+ "groundTruth": {
+  "source": "https://www.warmwinds.com/surf-report",
+  "reporter": "Nick Haase",
+  "updated": "11, July, 2026 @ 02:10",
+  "waveHeightFt": 1.6,
+  "periodS": 11.0,
+  "swellDir": 136.0,
+  "windMph": 6.0,
+  "windDir": 310.0,
+  "waterTempF": null,
+  "outlook": [
+   {
+    "day": "Sunday, July 12",
+    "sizeFt": "0-1",
+    "wind": "SW winds"
+   },
+   {
+    "day": "Monday, July 13",
+    "sizeFt": "0-1",
+    "wind": "SW winds"
+   },
+   {
+    "day": "Tuesday, July 14",
+    "sizeFt": "0-1",
+    "wind": "West winds"
+   }
+  ]
  },
  "conditions": {
   "swell": [
-   {
-    "h": 0.85,
-    "t": 6.8,
-    "d": 156
-   },
    {
     "h": 0.85,
     "t": 6.8,
@@ -788,14 +817,14 @@
     "h": 0.85,
     "t": 6.3,
     "d": 163
+   },
+   {
+    "h": 0.85,
+    "t": 6.3,
+    "d": 163
    }
   ],
   "windWave": [
-   {
-    "h": 0.26,
-    "t": 1.1,
-    "d": 147
-   },
    {
     "h": 0.46,
     "t": 1.6,
@@ -1390,15 +1419,15 @@
     "h": 0.66,
     "t": 2.2,
     "d": 338
+   },
+   {
+    "h": 0.53,
+    "t": 2.2,
+    "d": 335
    }
   ],
   "wind": {
    "narragansett": [
-    {
-     "spd": 5.0,
-     "dir": 110,
-     "gust": 6.0
-    },
     {
      "spd": 6.0,
      "dir": 130,
@@ -1993,14 +2022,14 @@
      "spd": 9.0,
      "dir": 260,
      "gust": 12.0
+    },
+    {
+     "spd": 10.0,
+     "dir": 260,
+     "gust": 13.0
     }
    ],
    "point-judith": [
-    {
-     "spd": 5.0,
-     "dir": 110,
-     "gust": 7.0
-    },
     {
      "spd": 6.0,
      "dir": 130,
@@ -2595,14 +2624,14 @@
      "spd": 9.0,
      "dir": 260,
      "gust": 12.0
+    },
+    {
+     "spd": 10.0,
+     "dir": 260,
+     "gust": 14.0
     }
    ],
    "matunuck": [
-    {
-     "spd": 5.0,
-     "dir": 110,
-     "gust": 6.0
-    },
     {
      "spd": 6.0,
      "dir": 120,
@@ -3197,14 +3226,15 @@
      "spd": 8.0,
      "dir": 270,
      "gust": 10.0
+    },
+    {
+     "spd": 9.0,
+     "dir": 260,
+     "gust": 12.0
     }
    ]
   },
   "tide": [
-   {
-    "ft": -0.14,
-    "stage": "rising"
-   },
    {
     "ft": 0.0,
     "stage": "rising"
@@ -3680,6 +3710,10 @@
    {
     "ft": 3.68,
     "stage": "falling"
+   },
+   {
+    "ft": 3.36,
+    "stage": "falling"
    }
   ]
  },
@@ -3787,20 +3821,6 @@
  ],
  "scores": {
   "narragansett-town-beach": [
-   {
-    "s": 0,
-    "status": "ok",
-    "limiting": "size",
-    "hEff": 0.89,
-    "tEff": 6.8,
-    "dEff": 156,
-    "q": {
-     "size": 0.0,
-     "wind": 0.58,
-     "period": 0.25,
-     "tide": 0.74
-    }
-   },
    {
     "s": 0,
     "status": "ok",
@@ -5466,23 +5486,23 @@
      "period": 0.25,
      "tide": 0.74
     }
-   }
-  ],
-  "monahans-dock": [
+   },
    {
     "s": 0,
     "status": "ok",
     "limiting": "size",
-    "hEff": 0.89,
-    "tEff": 6.8,
-    "dEff": 156,
+    "hEff": 0.85,
+    "tEff": 6.3,
+    "dEff": 163,
     "q": {
      "size": 0.0,
-     "wind": 0.58,
+     "wind": 0.84,
      "period": 0.25,
-     "tide": 0.93
+     "tide": 0.77
     }
-   },
+   }
+  ],
+  "monahans-dock": [
    {
     "s": 0,
     "status": "ok",
@@ -7148,23 +7168,23 @@
      "period": 0.25,
      "tide": 0.6
     }
-   }
-  ],
-  "point-judith-east": [
+   },
    {
     "s": 0,
     "status": "ok",
     "limiting": "size",
-    "hEff": 0.89,
-    "tEff": 6.8,
-    "dEff": 156,
+    "hEff": 0.85,
+    "tEff": 6.3,
+    "dEff": 163,
     "q": {
      "size": 0.0,
-     "wind": 0.57,
-     "period": 0.36,
-     "tide": 0.67
+     "wind": 0.9,
+     "period": 0.25,
+     "tide": 0.6
     }
-   },
+   }
+  ],
+  "point-judith-east": [
    {
     "s": 0,
     "status": "ok",
@@ -8830,23 +8850,23 @@
      "period": 0.26,
      "tide": 0.57
     }
-   }
-  ],
-  "point-judith-south": [
+   },
    {
     "s": 0,
     "status": "ok",
     "limiting": "size",
-    "hEff": 0.33,
-    "tEff": 6.8,
-    "dEff": 156,
+    "hEff": 0.4,
+    "tEff": 6.3,
+    "dEff": 163,
     "q": {
      "size": 0.0,
-     "wind": 0.91,
-     "period": 0.36,
-     "tide": 0.67
+     "wind": 0.86,
+     "period": 0.26,
+     "tide": 0.62
     }
-   },
+   }
+  ],
+  "point-judith-south": [
    {
     "s": 0,
     "status": "ok",
@@ -10512,23 +10532,23 @@
      "period": 0.26,
      "tide": 0.57
     }
-   }
-  ],
-  "k38": [
+   },
    {
     "s": 0,
     "status": "ok",
     "limiting": "size",
-    "hEff": 0.01,
-    "tEff": 6.8,
-    "dEff": 156,
+    "hEff": 0.85,
+    "tEff": 6.3,
+    "dEff": 163,
     "q": {
      "size": 0.0,
-     "wind": 0.91,
-     "period": 0.36,
-     "tide": 0.92
+     "wind": 0.2,
+     "period": 0.26,
+     "tide": 0.62
     }
-   },
+   }
+  ],
+  "k38": [
    {
     "s": 0,
     "status": "ok",
@@ -12194,23 +12214,23 @@
      "period": 0.26,
      "tide": 0.5
     }
-   }
-  ],
-  "camp-cronin": [
+   },
    {
     "s": 0,
     "status": "ok",
     "limiting": "size",
-    "hEff": 0.0,
-    "tEff": 6.8,
-    "dEff": 156,
+    "hEff": 0.04,
+    "tEff": 6.3,
+    "dEff": 163,
     "q": {
      "size": 0.0,
-     "wind": 0.91,
-     "period": 0.25,
-     "tide": 0.92
+     "wind": 0.2,
+     "period": 0.26,
+     "tide": 0.5
     }
-   },
+   }
+  ],
+  "camp-cronin": [
    {
     "s": 0,
     "status": "ok",
@@ -13876,23 +13896,23 @@
      "period": 0.25,
      "tide": 0.5
     }
-   }
-  ],
-  "deep-hole": [
+   },
    {
     "s": 0,
     "status": "ok",
     "limiting": "size",
-    "hEff": 0.89,
-    "tEff": 6.8,
-    "dEff": 156,
+    "hEff": 0.0,
+    "tEff": 6.3,
+    "dEff": 163,
     "q": {
      "size": 0.0,
-     "wind": 0.86,
-     "period": 0.36,
-     "tide": 0.86
+     "wind": 0.2,
+     "period": 0.25,
+     "tide": 0.5
     }
-   },
+   }
+  ],
+  "deep-hole": [
    {
     "s": 0,
     "status": "ok",
@@ -15560,23 +15580,23 @@
      "period": 0.26,
      "tide": 0.15
     }
-   }
-  ],
-  "matunuck-trestles": [
+   },
    {
     "s": 0,
     "status": "ok",
     "limiting": "size",
-    "hEff": 0.89,
-    "tEff": 6.8,
-    "dEff": 156,
+    "hEff": 0.85,
+    "tEff": 6.3,
+    "dEff": 163,
     "q": {
      "size": 0.0,
-     "wind": 0.9,
-     "period": 0.25,
-     "tide": 0.9
+     "wind": 0.52,
+     "period": 0.26,
+     "tide": 0.16
     }
-   },
+   }
+  ],
+  "matunuck-trestles": [
    {
     "s": 0,
     "status": "ok",
@@ -17244,23 +17264,23 @@
      "period": 0.25,
      "tide": 0.4
     }
-   }
-  ],
-  "matunuck-the-point": [
+   },
    {
     "s": 0,
     "status": "ok",
     "limiting": "size",
-    "hEff": 0.89,
-    "tEff": 6.8,
-    "dEff": 156,
+    "hEff": 0.85,
+    "tEff": 6.3,
+    "dEff": 163,
     "q": {
      "size": 0.0,
-     "wind": 0.9,
-     "period": 0.36,
-     "tide": 0.79
+     "wind": 0.45,
+     "period": 0.25,
+     "tide": 0.41
     }
-   },
+   }
+  ],
+  "matunuck-the-point": [
    {
     "s": 0,
     "status": "ok",
@@ -18928,23 +18948,23 @@
      "period": 0.26,
      "tide": 0.52
     }
-   }
-  ],
-  "green-hill": [
+   },
    {
     "s": 0,
     "status": "ok",
     "limiting": "size",
-    "hEff": 0.86,
-    "tEff": 6.8,
-    "dEff": 156,
+    "hEff": 0.85,
+    "tEff": 6.3,
+    "dEff": 163,
     "q": {
      "size": 0.0,
-     "wind": 0.9,
-     "period": 0.36,
-     "tide": 0.92
+     "wind": 0.45,
+     "period": 0.26,
+     "tide": 0.54
     }
-   },
+   }
+  ],
+  "green-hill": [
    {
     "s": 0,
     "status": "ok",
@@ -20610,6 +20630,20 @@
      "period": 0.26,
      "tide": 0.5
     }
+   },
+   {
+    "s": 0,
+    "status": "ok",
+    "limiting": "size",
+    "hEff": 0.85,
+    "tEff": 6.3,
+    "dEff": 163,
+    "q": {
+     "size": 0.0,
+     "wind": 0.45,
+     "period": 0.26,
+     "tide": 0.5
+    }
    }
   ]
  },
@@ -20670,42 +20704,42 @@
    {
     "spot": "narragansett-town-beach",
     "s": 0,
-    "at": "2026-07-12T12:00:00-04:00"
+    "at": "2026-07-12T13:00:00-04:00"
    },
    {
     "spot": "monahans-dock",
     "s": 0,
-    "at": "2026-07-12T12:00:00-04:00"
+    "at": "2026-07-12T13:00:00-04:00"
    },
    {
     "spot": "point-judith-east",
     "s": 0,
-    "at": "2026-07-12T12:00:00-04:00"
+    "at": "2026-07-12T13:00:00-04:00"
    },
    {
     "spot": "point-judith-south",
     "s": 0,
-    "at": "2026-07-12T12:00:00-04:00"
+    "at": "2026-07-12T13:00:00-04:00"
    },
    {
     "spot": "k38",
     "s": 0,
-    "at": "2026-07-12T12:00:00-04:00"
+    "at": "2026-07-12T13:00:00-04:00"
    },
    {
     "spot": "camp-cronin",
     "s": 0,
-    "at": "2026-07-12T12:00:00-04:00"
+    "at": "2026-07-12T13:00:00-04:00"
    },
    {
     "spot": "matunuck-the-point",
     "s": 0,
-    "at": "2026-07-12T12:00:00-04:00"
+    "at": "2026-07-12T13:00:00-04:00"
    },
    {
     "spot": "green-hill",
     "s": 0,
-    "at": "2026-07-12T12:00:00-04:00"
+    "at": "2026-07-12T13:00:00-04:00"
    }
   ],
   "bestWeek": [
@@ -20732,32 +20766,32 @@
    {
     "spot": "narragansett-town-beach",
     "s": 0,
-    "at": "2026-07-12T12:00:00-04:00"
+    "at": "2026-07-12T13:00:00-04:00"
    },
    {
     "spot": "monahans-dock",
     "s": 0,
-    "at": "2026-07-12T12:00:00-04:00"
+    "at": "2026-07-12T13:00:00-04:00"
    },
    {
     "spot": "point-judith-east",
     "s": 0,
-    "at": "2026-07-12T12:00:00-04:00"
+    "at": "2026-07-12T13:00:00-04:00"
    },
    {
     "spot": "point-judith-south",
     "s": 0,
-    "at": "2026-07-12T12:00:00-04:00"
+    "at": "2026-07-12T13:00:00-04:00"
    },
    {
     "spot": "k38",
     "s": 0,
-    "at": "2026-07-12T12:00:00-04:00"
+    "at": "2026-07-12T13:00:00-04:00"
    },
    {
     "spot": "camp-cronin",
     "s": 0,
-    "at": "2026-07-12T12:00:00-04:00"
+    "at": "2026-07-12T13:00:00-04:00"
    }
   ]
  }

@@ -56,7 +56,8 @@ BUOYS = ["44097", "44085"]       # Block Island (primary), Buzzards Bay 260 (fal
 
 # Cache TTLs, in seconds -- matched to how often each upstream actually changes.
 # Polling faster than the source updates is just rudeness.
-TTL = {"marine": 3 * 3600, "nws": 3600, "tide": 24 * 3600, "ndbc": 20 * 60}
+TTL = {"marine": 3 * 3600, "nws": 3600, "tide": 24 * 3600, "ndbc": 20 * 60,
+       "warmwinds": 6 * 3600}   # hand-written, ~daily -- 6h is already generous
 
 # --- scoring calibration -------------------------------------------------
 # NONE of these are sourced. They are physically motivated but numerically
@@ -317,6 +318,113 @@ def fetch_buoy(src):
     return None
 
 
+# ============================================================== ground truth
+
+WW_URL = "https://www.warmwinds.com/surf-report"
+TAG = re.compile(r"(?s)<[^>]+>")
+SCRIPT = re.compile(r"(?is)<(script|style)[^>]*>.*?</\1>")
+DAYBAND = re.compile(r"^([\d.]+\s*-\s*[\d.]+|[\d.]+\+?)\s*(?:feet|ft)\s*/\s*(.+)$", re.I)
+
+
+def fetch_warmwinds(src):
+    """The local shop's HUMAN surf report -- our only ground truth.
+
+    We extract the numeric observation and their per-day size band, and we log
+    those beside the model's call so the calibration constants can eventually be
+    fitted instead of invented (docs §8.5).
+
+    Deliberately NOT extracted: their written prose. It is their copyrighted work.
+    We keep numbers and link out. Do not 'improve' this by grabbing the summary
+    paragraph."""
+    body = src.text("warmwinds", WW_URL, "warmwinds")
+    if not body:
+        return None
+    import html as _html
+    text = _html.unescape(TAG.sub("\n", SCRIPT.sub(" ", body)))
+    L = [x.strip() for x in text.split("\n") if x.strip()]
+    try:
+        i = L.index("TODAY'S RI SURF REPORT")
+    except ValueError:
+        return None                                   # page restructured -- fail loudly, not silently
+    blk = L[i:i + 60]
+
+    def after(label, n=1):
+        for k, x in enumerate(blk):
+            if x.strip().rstrip(':').upper() == label.upper():
+                return blk[k + n] if k + n < len(blk) else None
+        return None
+
+    def num(s):
+        if not s:
+            return None
+        m = re.search(r"[\d.]+", s)
+        return float(m.group()) if m else None
+
+    def bearing(s):
+        m = re.search(r"([\d.]+)\s*°", s or "")
+        return float(m.group(1)) if m else None
+
+    out = {
+        "source": WW_URL,
+        "reporter": after("Reporter"),
+        "updated": after("Updated"),
+        "waveHeightFt": num(after("WAVE HEIGHT")),
+        "periodS": num(after("DOMINANT PERIOD")),
+        "swellDir": bearing(after("SWELL DIRECTION")),
+        "windMph": num(after("WIND SPEED")),
+        "windDir": bearing(after("WIND DIRECTION")),
+        "waterTempF": num(after("Water Temperature")),   # next line is ": 65 Degrees"
+        "outlook": [],
+    }
+    # 3-day outlook: a heading line ("SUNDAY, JULY 12") followed by "0-1 feet / SW winds"
+    for k, x in enumerate(L[i:i + 90]):
+        if re.match(r"^[A-Z]+DAY,\s+[A-Z]+\s+\d+$", x) and k + 1 < len(L) - i:
+            m = DAYBAND.match(L[i + k + 1])
+            if m:
+                out["outlook"].append({"day": x.title(), "sizeFt": m.group(1).replace(" ", ""),
+                                       "wind": m.group(2).strip()})
+    return out if out["waveHeightFt"] is not None else None
+
+
+def log_calibration(report, path):
+    """Append one row: what the human said vs what the model said, same day.
+
+    This is the whole point of the ground-truth fetch. Nobody can calibrate
+    KAPPA0/ONSHORE_KILL/etc. from first principles -- they get fitted against
+    this log, or they stay invented forever."""
+    gt = report.get("groundTruth")
+    if not gt:
+        return None
+    swell = [c for c in report["conditions"]["swell"][:24] if c]
+    # biggest surf the model thinks actually ARRIVES anywhere today -- the number
+    # directly comparable to Warm Winds' "0-1 feet" call
+    heffs = [c["hEff"] for row_ in report["scores"].values() for c in row_[:24]
+             if c["s"] is not None]
+    row = {
+        "date": report["generatedAt"][:10],
+        "generatedAt": report["generatedAt"],
+        "human": gt,
+        "model": {
+            "bestToday": report["summary"]["bestToday"][:3],
+            "maxHEffToday": round(max(heffs), 2) if heffs else 0,
+            "swellToday": {
+                "maxH": round(max([c["h"] for c in swell], default=0), 2),
+                "maxT": round(max([c["t"] for c in swell], default=0), 1),
+            },
+        },
+    }
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    # one row per day; re-running the same day replaces it rather than duplicating
+    rows = []
+    if path.exists():
+        rows = [json.loads(l) for l in path.read_text().splitlines() if l.strip()]
+    rows = [r for r in rows if r["date"] != row["date"]] + [row]
+    rows.sort(key=lambda r: r["date"])
+    path.write_text("\n".join(json.dumps(r) for r in rows) + "\n")
+    return row
+
+
 # =================================================================== scoring
 
 def ang_diff(a, b):
@@ -501,6 +609,7 @@ def build(use_cache=True, window=None):
     winds = fetch_wind_era5(src, window) if window else fetch_wind(src)
     heights, ranges = fetch_tide(src, start.date(), (start + timedelta(hours=steps)).date())
     observed = None if window else fetch_buoy(src)
+    truth = None if window else fetch_warmwinds(src)   # ground truth, live runs only
 
     registry = json.loads((HERE / "spots.json").read_text())
     spots = registry["spots"]
@@ -547,6 +656,7 @@ def build(use_cache=True, window=None):
         "sources": src.log,
         "times": times,
         "observed": observed,
+        "groundTruth": truth,
         "conditions": conditions,
         "spots": [{k: s[k] for k in
                    ("id", "name", "lat", "lon", "facing", "bottom", "confidence", "notes")}
@@ -618,6 +728,16 @@ def main():
     out = Path(a.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(report, indent=1))
+
+    if not a.start:
+        row = log_calibration(report, REPO / "data" / "calibration-log.jsonl")
+        if row:
+            h = row["human"]
+            print(f"  ground truth: {h['waveHeightFt']} ft @ {h['periodS']}s "
+                  f"(Warm Winds, {h['updated']}) -> logged")
+        else:
+            print("  ! no ground truth logged (Warm Winds unreachable or restructured)",
+                  file=sys.stderr)
 
     failed = [s for s in report["sources"] if s["status"] == "failed"]
     scored = sum(1 for row in report["scores"].values() for c in row if c["s"] is not None)
