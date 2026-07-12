@@ -389,12 +389,24 @@ class SurfForecast extends HTMLElement {
       const col = kind === 'offshore' ? '#199e70' : kind === 'onshore' ? '#e66767' : '#c98500';
       // the STATE goes in the label, not just the colour. Offshore/cross/onshore is the
       // single most consequential fact on this dial, and colour alone can't carry it.
-      windArt = `<line x1="${wx0.toFixed(1)}" y1="${wy0.toFixed(1)}" x2="${wx1.toFixed(1)}"
-          y2="${wy1.toFixed(1)}" stroke="${col}" stroke-width="3" marker-end="url(#wa)"/>
-        <text x="${lx.toFixed(1)}" y="${(ly - 4).toFixed(1)}" fill="${col}" font-size="9"
-          font-weight="700" text-anchor="middle">WIND ${Math.round(w.spd)}kt</text>
-        <text x="${lx.toFixed(1)}" y="${(ly + 6).toFixed(1)}" fill="${col}" font-size="8"
-          font-weight="600" text-anchor="middle">${kind}</text>`;
+      // arrowhead drawn explicitly: a marker with fill="context-stroke" silently paints
+      // BLACK where that keyword isn't resolved, which is exactly how the head went dark
+      const a = w.dir * Math.PI / 180;
+      const ux = -Math.sin(a), uy = Math.cos(a);          // unit vector, pointing inward
+      const HL = 9, HW = 5;                                // head length / half-width
+      const [bx, by] = [wx1 - ux * HL, wy1 - uy * HL];     // base of the head
+      const head = `${wx1.toFixed(1)},${wy1.toFixed(1)} ` +
+                   `${(bx - uy * HW).toFixed(1)},${(by + ux * HW).toFixed(1)} ` +
+                   `${(bx + uy * HW).toFixed(1)},${(by - ux * HW).toFixed(1)}`;
+      windArt = `<line x1="${wx0.toFixed(1)}" y1="${wy0.toFixed(1)}" x2="${bx.toFixed(1)}"
+          y2="${by.toFixed(1)}" stroke="${col}" stroke-width="3.5" stroke-linecap="round"/>
+        <polygon points="${head}" fill="${col}"/>
+        <text x="${lx.toFixed(1)}" y="${(ly - 4).toFixed(1)}" fill="${col}" font-size="9.5"
+          font-weight="700" text-anchor="middle"
+          stroke="#111110" stroke-width="2.5" paint-order="stroke">WIND ${Math.round(w.spd)}kt</text>
+        <text x="${lx.toFixed(1)}" y="${(ly + 6).toFixed(1)}" fill="${col}" font-size="8.5"
+          font-weight="600" text-anchor="middle"
+          stroke="#111110" stroke-width="2.5" paint-order="stroke">${kind}</text>`;
       windTxt = `<b style="color:${col}">${Math.round(w.spd)} kt ${compass(w.dir)} · ${kind}</b>`;
     }
 
@@ -413,10 +425,6 @@ class SurfForecast extends HTMLElement {
     return `<div class="rose">
       <svg viewBox="-22 -24 264 268" role="img" aria-label="Compass: swell energy by direction, ${
         sp.name}'s open swell window, and the wind.">
-        <defs>
-          <marker id="wa" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto">
-            <path d="M0 0 L5 2.5 L0 5 z" fill="context-stroke"/></marker>
-        </defs>
         <circle cx="${CX}" cy="${CY}" r="${R}" fill="#15161a" stroke="#2b2b28"/>
         <circle cx="${CX}" cy="${CY}" r="${(R * 0.62).toFixed(0)}" fill="none" stroke="#242424"/>
         <circle cx="${CX}" cy="${CY}" r="${(R * 0.32).toFixed(0)}" fill="none" stroke="#242424"/>
