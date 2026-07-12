@@ -65,6 +65,12 @@ TTL = {"marine": 3 * 3600, "nws": 3600, "tide": 24 * 3600, "ndbc": 20 * 60,
 # ("Deep Hole beats Green Hill today") and not cardinal ("62 out of 100").
 # The calibration loop is: score a day, read the Warm Winds human report,
 # adjust. See docs/forecast-agent.md §8.5.
+# The one calibration constant that is FITTED rather than invented: a single scale on
+# effective wave height, tuned against the Warm Winds human report by calibrate.py.
+# 1.0 = trust the wave model as-is. Changed only by a reviewed PR from the compounding
+# CI step -- never silently.
+SIZE_BIAS = 1.0
+
 KAPPA0, KAPPA1 = 6.0, 1.5        # diffraction: how far swell bends around a headland
 GLASS = 4.0                      # kt; below this, glassy regardless of direction
 ONSHORE_KILL = 12.0              # kt of straight-onshore that zeroes a spot
@@ -334,6 +340,40 @@ def fetch_buoy(src):
                 obs["windWave"] = {"h": round(wwh * M_TO_FT, 1), "t": wwp, "d": int(wwd)}
             return obs
     return None
+
+
+# ==================================================================== tropics
+
+def fetch_tropics(src):
+    """NHC Atlantic tropical outlook. Found via the links at the bottom of the Warm
+    Winds report -- and it is the most valuable thing on that page.
+
+    Hurricane groundswell is what makes surf here good; Hurricane Lee is the whole
+    reason our example dataset has waves in it. But GFS-Wave only sees 5 days, so a
+    storm spinning up 7-10 days out is INVISIBLE to this app. NHC sees it first.
+
+    That cuts both ways, and the honest half matters more: when NHC says no formation
+    is expected in 7 days, a flat forecast is not just flat inside our window -- there
+    is nothing coming behind it either. That turns "nothing in the next 5 days" from a
+    statement about our horizon into a statement about the ocean."""
+    out = {}
+    storms = src.json("nhc-storms", "https://www.nhc.noaa.gov/CurrentStorms.json", "nws")
+    if storms is not None:
+        out["activeStorms"] = [
+            {"name": s.get("name"), "class": s.get("classification"),
+             "lat": s.get("lat"), "lon": s.get("lon"),
+             "windMph": s.get("intensity"), "movement": s.get("movementDir")}
+            for s in storms.get("activeStorms", [])
+            if str(s.get("binNumber", "")).startswith("AT") or s.get("id", "").startswith("al")
+        ]
+
+    xml = src.text("nhc-outlook", "https://www.nhc.noaa.gov/xml/TWOAT.xml", "nws")
+    if xml:
+        m = re.search(r"(Tropical cyclone formation is[^.]*\.)", xml)
+        if m:
+            out["outlook"] = m.group(1).strip()
+        out["formationExpected"] = bool(m and "not expected" not in m.group(1))
+    return out or None
 
 
 # =================================================================== spectrum
@@ -620,7 +660,7 @@ def effective_swell(cond, spot):
         parts.append((c["h"] * e, c["t"], c["d"]))
     if not parts:
         return None
-    h_eff = math.sqrt(sum(h * h for h, _, _ in parts))
+    h_eff = math.sqrt(sum(h * h for h, _, _ in parts)) * SIZE_BIAS
     dom = max(parts, key=lambda p: p[0])                  # dominant = biggest arriving
     # energy of what actually reaches THIS spot, after the headland has had its say
     return {"h": round(h_eff, 2), "t": dom[1], "d": dom[2],
@@ -757,6 +797,7 @@ def build(use_cache=True, window=None):
     observed = None if window else fetch_buoy(src)
     truth = None if window else fetch_warmwinds(src)   # ground truth, live runs only
     spectrum = None if window else fetch_spectrum(src)  # observed only; no forecast equivalent
+    tropics = None if window else fetch_tropics(src)    # 7-day view, BEYOND our 5-day model
 
     registry = json.loads((HERE / "spots.json").read_text())
     spots = registry["spots"]
@@ -812,6 +853,7 @@ def build(use_cache=True, window=None):
         "times": times,
         "observed": observed,
         "spectrum": spectrum,
+        "tropics": tropics,
         "groundTruth": truth,
         "conditions": conditions,
         # openWindow / disputedWindow / offshoreDir ship to the client so the compass

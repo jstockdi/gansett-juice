@@ -15,6 +15,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write      # the compounding step opens PRs; it never merges them
 
 concurrency:
   group: forecast
@@ -65,3 +66,75 @@ jobs:
             git commit -m "Forecast $(TZ=America/New_York date +%Y-%m-%d)"
             git push
           fi
+
+  # ------------------------------------------------------------------ compound
+  # The compounding step. Every day the forecast job logs what the human (Warm
+  # Winds) called beside what we called. This job reads that accumulating history
+  # and asks: is the model systematically drifting from the human?
+  #
+  # If it is, it opens a PR proposing a new SIZE_BIAS, with the evidence attached.
+  # It NEVER merges, and it never edits main. Deliberately:
+  #   * these constants are already unsourced guesses -- a robot silently tuning
+  #     guesses against a small sample produces numbers nobody can defend
+  #   * one report a day is a small, autocorrelated sample; a single hurricane week
+  #     could yank a constant hard. Hence: >=14 days required, 15% step cap, and a
+  #     median (not a mean) so one wild day cannot swing the fit
+  #   * a size disagreement can mean the model is wrong OR the threshold is wrong,
+  #     and those need opposite fixes. A human decides which.
+  compound:
+    needs: forecast
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+
+      - name: Review the model against the human
+        id: cal
+        run: |
+          python3 .claude/skills/surf-forecast/calibrate.py | tee report.txt
+          python3 .claude/skills/surf-forecast/calibrate.py --json > cal.json
+          echo "propose=$(python3 -c "import json;print(str(json.load(open('cal.json'))['propose']).lower())")" >> "$GITHUB_OUTPUT"
+
+      - name: Open a PR proposing the correction
+        if: steps.cal.outputs.propose == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          NEW=$(python3 -c "import json;print(json.load(open('cal.json'))['proposedBias'])")
+          OLD=$(python3 -c "import json;print(json.load(open('cal.json'))['currentBias'])")
+          BR="calibrate/size-bias-$NEW"
+
+          # don't stack duplicate PRs if one is already open for this value
+          if gh pr list --head "$BR" --state open --json number | grep -q number; then
+            echo "a PR for this correction is already open"; exit 0
+          fi
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BR"
+          sed -i -E "s/^SIZE_BIAS = .*/SIZE_BIAS = $NEW/" .claude/skills/surf-forecast/forecast.py
+          git add .claude/skills/surf-forecast/forecast.py
+          git commit -m "Calibrate: SIZE_BIAS $OLD -> $NEW"
+          git push -u origin "$BR"
+
+          {
+            echo "The model has drifted from the human report. This is a **proposal**, not a fix."
+            echo
+            echo '```'
+            cat report.txt
+            echo '```'
+            echo
+            echo "**Before merging, ask:**"
+            echo "- Is the model wrong, or is Warm Winds' band just coarse (they report \`0-1 ft\`, we report a number)?"
+            echo "- Is the sample dominated by flat days? A fortnight of knee-high teaches almost nothing about overhead."
+            echo "- Does the direction match your own sessions?"
+            echo
+            echo "If the disagreement is about the *verdict* rather than the *size*, this is the wrong lever — the worth-it threshold is, and that is a taste call, not a calibration."
+          } > body.md
+
+          gh pr create --title "Calibrate: SIZE_BIAS $OLD -> $NEW" --body-file body.md --base main --head "$BR"
+
+      - name: Nothing to propose
+        if: steps.cal.outputs.propose != 'true'
+        run: cat report.txt

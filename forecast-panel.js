@@ -73,6 +73,10 @@ class SurfForecast extends HTMLElement {
           border-top: 1px solid #2b2b28; line-height: 1.5; }
         .next b { color: #9ec5f4; font-weight: 600; }
         /* attribution sits WITH the claim, not in the small print */
+        .trop { font-size: 12px; color: #86857c; margin-top: 9px; padding-top: 9px;
+          border-top: 1px solid #2b2b28; line-height: 1.5; }
+        .trop.hot { color: #fab219; }
+        .trop.hot b { color: #fff; }
         .credit { font-size: 12px; color: #86857c; margin-top: 9px; padding-top: 9px;
           border-top: 1px solid #2b2b28; line-height: 1.5; }
         .credit a { color: #c3c2b7; font-weight: 600; text-decoration: none;
@@ -301,8 +305,35 @@ class SurfForecast extends HTMLElement {
       <div class="next">${nw
         ? `Next window: <b>${spot(nw.spot)}, ${fcDay(nw.at)} ${fcHour(nw.at)}</b> (${nw.s}/100).`
         : 'No proper swell in the next 5 days.'}</div>
+      ${this._tropics()}
       ${this._credit()}
     </div>` + this._why();
+  }
+
+  /* NHC's tropical outlook runs 7 days; our wave model only sees 5. Hurricane
+     groundswell is what makes surf here good, so a storm forming beyond our horizon
+     is the most important thing we CAN'T otherwise see.
+
+     The quiet case matters just as much: when NHC says no formation is expected, a
+     flat forecast stops being a statement about our window and becomes a statement
+     about the ocean. "Nothing in my 5 days" and "nothing is coming" are different
+     claims, and only one of them is worth acting on. */
+  _tropics() {
+    const t = this._d.tropics;
+    if (!t) return '';
+    const live = (t.activeStorms || []).length;
+    if (live) {
+      const names = t.activeStorms.map(s => `${s.class || ''} ${s.name}`.trim()).join(', ');
+      return `<div class="trop hot">🌀 <b>${names}</b> active in the Atlantic. Hurricane
+        groundswell is what turns this coast on — watch the next few days, it is beyond
+        the wave model's 5-day horizon.</div>`;
+    }
+    if (t.formationExpected) {
+      return `<div class="trop hot">🌀 NHC expects tropical formation in the Atlantic.
+        Groundswell may follow — beyond the 5-day model horizon.</div>`;
+    }
+    return `<div class="trop">NHC: no tropical formation expected for 7 days — so nothing
+      is building behind this, either.</div>`;
   }
 
   _biggest() {
