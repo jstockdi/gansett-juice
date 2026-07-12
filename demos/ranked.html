@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Gansett Juice — Option C: best now / today / this week</title>
+<style>
+  :root {
+    --surface-0: #111110;
+    --surface-1: #1a1a19;
+    --surface-2: #22221f;
+    --text-primary: #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted: #86857c;
+    --hairline: #34342f;
+    --s1: #184f95; --s2: #256abf; --s3: #3987e5;
+    --s4: #6da7ec; --s5: #9ec5f4; --s6: #cde2fb;
+    --warn: #fab219;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--surface-0); color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased; }
+</style>
+</head>
+<body>
+<surf-ranked></surf-ranked>
+
+<script>
+/* ==================================================================== *
+ *  Option C — ranked "best now / today / this week", with drill-down   *
+ *                                                                      *
+ *  The phone-first one. Answers the only question most people have     *
+ *  ("where do I go?") above the fold, in words and numbers, then lets  *
+ *  you open a spot to see the timeseries behind the call.              *
+ *                                                                      *
+ *  Non-colour channels: rank order, the score as a number, meter bar   *
+ *  LENGTH, and the limiting factor written out in plain words. Colour  *
+ *  is decoration here, not information -- turn it off and nothing is   *
+ *  lost. That is the point.                                            *
+ * ==================================================================== */
+
+const DATASETS = [
+  { id: 'swell', label: 'Hurricane Lee (Sept 2023)', url: '../data/forecast-example-swell.json' },
+  { id: 'live',  label: 'Live 5-day forecast',       url: '../data/forecast.json' },
+];
+const RAMP = ['#184f95', '#256abf', '#3987e5', '#6da7ec', '#9ec5f4', '#cde2fb'];
+const rampFor = s => RAMP[Math.min(5, Math.floor(s / 100 * 6))];
+const VERDICT = s =>
+  s >= 75 ? 'Go' : s >= 55 ? 'Worth a look' : s >= 30 ? 'Marginal' : s > 0 ? 'Poor' : 'Flat / blown out';
+const LIMIT_SENTENCE = {
+  size: 'not the right size', wind: 'wind is wrong', period: 'period too short',
+  tide: 'tide is wrong', none: 'nothing holding it back',
+};
+const REGION = id =>
+  ['narragansett-town-beach', 'monahans-dock'].includes(id) ? 'narragansett'
+  : ['point-judith-east', 'point-judith-south', 'k38', 'camp-cronin'].includes(id) ? 'point-judith'
+  : 'matunuck';
+const when = t => new Date(t).toLocaleString('en-US',
+  { weekday: 'short', hour: 'numeric', hour12: true });
+
+class SurfRanked extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+    this._ds = DATASETS[0];
+    this._scope = 'bestToday';
+    this._open = null;
+    this.shadowRoot.innerHTML = `
+      <style>
+        :host { display: block; padding: 18px 16px 40px; max-width: 620px; margin: 0 auto; }
+        h1 { font-size: 17px; margin: 0 0 2px; }
+        .sub { color: var(--text-muted); font-size: 12.5px; margin: 0 0 14px; }
+        select { background: var(--surface-2); color: var(--text-primary);
+          border: 1px solid var(--hairline); border-radius: 8px; padding: 6px 10px;
+          font: inherit; font-size: 12.5px; margin-bottom: 12px; width: 100%; }
+        .note { font-size: 12px; color: var(--text-secondary); background: var(--surface-1);
+          border: 1px solid var(--hairline); border-left: 3px solid var(--s3);
+          border-radius: 6px; padding: 8px 10px; margin-bottom: 14px; line-height: 1.45; }
+
+        /* hero — the one number the page leads with */
+        .hero { background: var(--surface-1); border: 1px solid var(--hairline);
+          border-radius: 12px; padding: 16px 16px 14px; margin-bottom: 14px; }
+        .hero .lbl { font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
+          color: var(--text-muted); }
+        .hero .spot { font-size: 22px; font-weight: 650; margin: 3px 0 1px; letter-spacing: -.02em; }
+        .hero .fig { font-size: 52px; font-weight: 300; line-height: 1.05;
+          font-variant-numeric: tabular-nums; letter-spacing: -.03em; }
+        .hero .fig span { font-size: 17px; color: var(--text-muted); font-weight: 400; }
+        .hero .verdict { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+        .hero .why { font-size: 12px; color: var(--text-muted); margin-top: 8px; line-height: 1.5; }
+
+        .tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+        .tabs button { flex: 1; background: var(--surface-1); color: var(--text-secondary);
+          border: 1px solid var(--hairline); border-radius: 8px; padding: 8px 6px;
+          font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer;
+          -webkit-tap-highlight-color: transparent; }
+        .tabs button[aria-selected="true"] { background: #2e2e2a; color: var(--text-primary);
+          border-color: #55554d; }
+
+        ol { list-style: none; margin: 0; padding: 0; background: var(--surface-1);
+          border: 1px solid var(--hairline); border-radius: 12px; overflow: hidden; }
+        li { border-bottom: 1px solid var(--hairline); }
+        li:last-child { border-bottom: 0; }
+        .row { display: grid; grid-template-columns: 22px 1fr auto; gap: 10px;
+          align-items: center; padding: 11px 13px; cursor: pointer;
+          -webkit-tap-highlight-color: transparent; }
+        .row:hover { background: var(--surface-2); }
+        .rank { font-size: 12px; color: var(--text-muted); font-variant-numeric: tabular-nums;
+          text-align: right; }
+        .nm { font-size: 13.5px; font-weight: 600; }
+        /* CHANNEL 2: meter LENGTH. Works with no colour at all.
+           display:block is load-bearing -- a bare <span> collapses the bar to
+           nothing and the whole non-colour channel silently disappears. */
+        .meter { display: block; height: 5px; border-radius: 3px; background: #2b2b28;
+          margin-top: 6px; overflow: hidden; }
+        .meter i { display: block; height: 100%; border-radius: 3px; }
+        .why { display: block; font-size: 11.5px; color: var(--text-muted); margin-top: 5px; }
+        .sc { text-align: right; }
+        .sc b { font-size: 19px; font-variant-numeric: tabular-nums; font-weight: 600; }
+        .sc .at { display: block; font-size: 10.5px; color: var(--text-muted); margin-top: 1px; }
+
+        .drill { padding: 0 13px 13px; }
+        .drill.hidden { display: none; }
+        .strip { display: flex; gap: 1px; align-items: flex-end; height: 40px;
+          background: var(--surface-2); border-radius: 6px; padding: 4px; margin-bottom: 8px; }
+        .strip i { flex: 1; border-radius: 1.5px; min-height: 1px; }
+        .strip i.nd { background: repeating-linear-gradient(45deg,#2b2b28 0 3px,transparent 3px 6px);
+          height: 100% !important; border: 1px dashed #3d3d38; }
+        .facts { display: grid; grid-template-columns: repeat(auto-fit,minmax(90px,1fr));
+          gap: 8px; font-size: 11.5px; }
+        .fact { background: var(--surface-2); border-radius: 7px; padding: 7px 9px; }
+        .fact .k { color: var(--text-muted); font-size: 10px; display: block; }
+        .fact .v { font-weight: 600; }
+        .cau { font-size: 11.5px; color: var(--warn); margin-top: 8px; }
+        .conf { font-size: 10px; color: var(--text-muted); font-weight: 400; margin-left: 5px; }
+      </style>
+
+      <h1>Option C — best now / today / this week</h1>
+      <p class="sub">The phone answer: where do I go, and when.</p>
+      <select id="ds"></select>
+      <div class="note" id="note"></div>
+      <div class="hero" id="hero"></div>
+      <div class="tabs" id="tabs">
+        <button data-k="bestNow">Right now</button>
+        <button data-k="bestToday">Today</button>
+        <button data-k="bestWeek">This week</button>
+      </div>
+      <ol id="list"></ol>`;
+
+    const sel = this.shadowRoot.getElementById('ds');
+    sel.innerHTML = DATASETS.map(d => `<option value="${d.id}">${d.label}</option>`).join('');
+    sel.addEventListener('change', e => {
+      this._ds = DATASETS.find(d => d.id === e.target.value);
+      this.load();
+    });
+    this.shadowRoot.getElementById('tabs').addEventListener('click', e => {
+      const b = e.target.closest('button');
+      if (!b) return;
+      this._scope = b.dataset.k;
+      this._open = null;
+      this.render();
+    });
+  }
+
+  connectedCallback() { this.load(); }
+
+  async load() {
+    this._d = await (await fetch(this._ds.url)).json();
+    this.render();
+  }
+
+  render() {
+    const d = this._d;
+    this.shadowRoot.getElementById('note').innerHTML = d.historical
+      ? `<b>Replay, not a forecast.</b> ${d.historical.note}`
+      : `<b>Live forecast.</b> A board of zeros means the ocean is flat, not that the model broke.`;
+
+    [...this.shadowRoot.querySelectorAll('.tabs button')].forEach(b =>
+      b.setAttribute('aria-selected', b.dataset.k === this._scope));
+
+    const list = d.summary[this._scope] || [];
+    const spot = id => d.spots.find(s => s.id === id);
+
+    // index of the hour a ranked entry refers to (bestNow has no `at`)
+    const idxOf = e => e.at ? d.times.indexOf(e.at) : 0;
+
+    // hero
+    const top = list[0];
+    const hero = this.shadowRoot.getElementById('hero');
+    if (!top) {
+      hero.innerHTML = `<div class="lbl">Nothing scored</div>
+        <div class="spot">No data</div>`;
+    } else {
+      const i = idxOf(top);
+      const c = d.scores[top.spot][i];
+      const w = d.conditions.wind[REGION(top.spot)][i];
+      hero.innerHTML = `
+        <div class="lbl">${this._scope === 'bestNow' ? 'Best right now'
+          : this._scope === 'bestToday' ? 'Best today' : 'Best this week'}</div>
+        <div class="spot">${spot(top.spot).name}</div>
+        <div class="fig">${top.s}<span>/100</span></div>
+        <div class="verdict">${VERDICT(top.s)}${top.at ? ' · ' + when(top.at) : ''}</div>
+        <div class="why">${c.hEff} ft @ ${c.tEff}s from ${c.dEff}°${
+          w ? ` · wind ${w.spd} kt from ${w.dir}°` : ''}<br>
+          ${top.s > 0 ? LIMIT_SENTENCE[c.limiting] : 'nothing is breaking'}</div>`;
+    }
+
+    // ranked rows
+    this.shadowRoot.getElementById('list').innerHTML = list.map((e, n) => {
+      const i = idxOf(e);
+      const c = d.scores[e.spot][i];
+      const sp = spot(e.spot);
+      const open = this._open === e.spot;
+      return `<li>
+        <div class="row" data-spot="${e.spot}">
+          <span class="rank">${n + 1}</span>
+          <span>
+            <span class="nm">${sp.name}${sp.confidence !== 'sourced'
+              ? `<span class="conf">${sp.confidence}</span>` : ''}</span>
+            <span class="meter"><i style="width:${e.s}%;background:${rampFor(e.s)}"></i></span>
+            <span class="why">${
+              e.s === 0 ? 'flat or blown out'
+              : c.limiting === 'none' ? `${c.hEff} ft @ ${c.tEff}s from ${c.dEff}°`
+              : LIMIT_SENTENCE[c.limiting]}</span>
+          </span>
+          <span class="sc"><b>${e.s}</b>${e.at
+            ? `<span class="at">${when(e.at)}</span>` : ''}</span>
+        </div>
+        <div class="drill ${open ? '' : 'hidden'}">${open ? this._drill(e.spot, i) : ''}</div>
+      </li>`;
+    }).join('') || '<li><div class="row"><span></span><span class="why">No spots scored.</span></div></li>';
+
+    this.shadowRoot.querySelectorAll('.row').forEach(r =>
+      r.addEventListener('click', () => {
+        this._open = this._open === r.dataset.spot ? null : r.dataset.spot;
+        this.render();
+      }));
+  }
+
+  /* drill-down: the 5-day strip + the conditions at the peak hour */
+  _drill(id, i) {
+    const d = this._d;
+    const row = d.scores[id];
+    const c = row[i];
+    const w = d.conditions.wind[REGION(id)][i];
+    const sw = d.conditions.swell[i], td = d.conditions.tide[i];
+
+    const strip = row.map((x, k) => x.s === null
+      ? '<i class="nd"></i>'
+      : `<i style="height:${Math.max(2, x.s)}%;background:${rampFor(x.s)};${
+          k === i ? 'outline:1.5px solid #fff;outline-offset:-1px' : ''}"></i>`).join('');
+
+    const fact = (k, v) => `<div class="fact"><span class="k">${k}</span><span class="v">${v}</span></div>`;
+    return `
+      <div class="strip">${strip}</div>
+      <div class="facts">
+        ${fact('Surf', `${c.hEff} ft @ ${c.tEff}s`)}
+        ${fact('From', `${c.dEff}°`)}
+        ${w ? fact('Wind', `${w.spd} kt @ ${w.dir}°`) : ''}
+        ${td ? fact('Tide', `${td.ft} ft ${td.stage}`) : ''}
+        ${fact('Limited by', LIMIT_SENTENCE[c.limiting])}
+      </div>
+      ${c.caution ? `<div class="cau">⚠ ${c.caution} — this spot is scoring on swell that only
+        reaches it by bending around the headland. That taper is our inference, not a sourced rule.</div>` : ''}
+      <div class="why" style="margin-top:8px">${d.spots.find(s => s.id === id).notes || ''}</div>`;
+  }
+}
+customElements.define('surf-ranked', SurfRanked);
+</script>
+</body>
+</html>

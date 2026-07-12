@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Gansett Juice — Option A: spots × time heatmap</title>
+<style>
+  :root {
+    --surface-0: #111110;
+    --surface-1: #1a1a19;
+    --surface-2: #22221f;
+    --text-primary: #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted: #86857c;
+    --hairline: #34342f;
+    /* sequential score ramp — blue, validated for the dark surface
+       (monotone L, ΔL ≥ .06, darkest step 2.15:1 vs surface) */
+    --s1: #184f95; --s2: #256abf; --s3: #3987e5;
+    --s4: #6da7ec; --s5: #9ec5f4; --s6: #cde2fb;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--surface-0); color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased; }
+</style>
+</head>
+<body>
+<surf-heatmap></surf-heatmap>
+
+<script>
+/* ==================================================================== *
+ *  Option A — spots × time heatmap                                     *
+ *  Dense and scannable: the whole 5 days in one view.                  *
+ *                                                                      *
+ *  Quality is encoded TWICE, redundantly:                              *
+ *    1. colour  — sequential blue ramp, low -> high                    *
+ *    2. height  — bar height within the cell, 0..100                   *
+ *  Either channel alone carries the score, so the chart survives       *
+ *  colour-blindness, greyscale printing, and a phone in direct sun.    *
+ *  no-data is a hatch, never the low end of the ramp.                  *
+ * ==================================================================== */
+
+const RAMP = ['#184f95', '#256abf', '#3987e5', '#6da7ec', '#9ec5f4', '#cde2fb'];
+const rampFor = s => RAMP[Math.min(5, Math.floor(s / 100 * 6))];
+
+/* what's holding the spot back — a non-colour channel, shown on hover + in the key */
+const LIMIT_LABEL = { size: 'too small / too big', wind: 'wind', period: 'period', tide: 'tide', none: '—' };
+
+const DATASETS = [
+  { id: 'swell', label: 'Hurricane Lee (Sept 2023)', url: '../data/forecast-example-swell.json' },
+  { id: 'live',  label: 'Live 5-day forecast',       url: '../data/forecast.json' },
+];
+
+class SurfHeatmap extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+    this._ds = DATASETS[0];
+    this.shadowRoot.innerHTML = `
+      <style>
+        :host { display: block; padding: 18px 16px 40px; max-width: 1200px; margin: 0 auto; }
+        h1 { font-size: 17px; margin: 0 0 2px; letter-spacing: -.01em; }
+        .sub { color: var(--text-muted); font-size: 12.5px; margin: 0 0 14px; }
+
+        .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 14px; }
+        select, button { background: var(--surface-2); color: var(--text-primary);
+          border: 1px solid var(--hairline); border-radius: 8px; padding: 6px 10px;
+          font: inherit; font-size: 12.5px; cursor: pointer; }
+        button[aria-pressed="true"] { background: #2e2e2a; border-color: #55554d; }
+
+        .note { font-size: 12px; color: var(--text-secondary); background: var(--surface-1);
+          border: 1px solid var(--hairline); border-left: 3px solid var(--s3);
+          border-radius: 6px; padding: 8px 10px; margin-bottom: 14px; line-height: 1.45; }
+
+        .scroll { overflow-x: auto; border: 1px solid var(--hairline); border-radius: 10px;
+          background: var(--surface-1); }
+        table { border-collapse: collapse; }
+        th, td { padding: 0; }
+        /* sticky spot column so the labels never leave the screen while scrolling time */
+        .spot { position: sticky; left: 0; z-index: 2; background: var(--surface-1);
+          border-right: 1px solid var(--hairline); text-align: left;
+          padding: 0 10px; font-size: 12px; font-weight: 500; white-space: nowrap;
+          min-width: 152px; color: var(--text-secondary); }
+        .spot .conf { color: var(--text-muted); font-size: 10px; font-weight: 400; }
+        .dayhdr { font-size: 11px; font-weight: 600; color: var(--text-muted);
+          text-align: left; padding: 7px 0 5px 4px; white-space: nowrap;
+          border-bottom: 1px solid var(--hairline); }
+        .daysep { border-left: 1px solid var(--hairline); }
+
+        .cell { width: 13px; height: 26px; position: relative; vertical-align: bottom;
+          cursor: crosshair; }
+        /* CHANNEL 2: height. Bottom-anchored, so a bad hour is a stub and a good
+           hour is a full block -- readable with no colour at all. */
+        .fill { position: absolute; left: 1px; right: 1px; bottom: 1px; border-radius: 2px 2px 1px 1px; }
+        .nodata { position: absolute; inset: 1px; border-radius: 2px;
+          background: repeating-linear-gradient(45deg, #2b2b28 0 3px, transparent 3px 6px);
+          border: 1px dashed #3d3d38; }
+        .caution::after { content: ''; position: absolute; top: 2px; right: 2px;
+          width: 3px; height: 3px; border-radius: 50%; background: #fab219; }
+        .cell:hover { outline: 1px solid #fff; outline-offset: -1px; z-index: 1; }
+        .peak { outline: 1.5px solid var(--text-primary); outline-offset: -1px; }
+
+        /* greyscale proof — the toggle exists so you can SEE that height alone works */
+        :host([mono]) .fill { filter: grayscale(1) brightness(1.35); }
+
+        .tip { position: fixed; z-index: 10; pointer-events: none; opacity: 0;
+          transition: opacity .1s; background: #000; border: 1px solid #45453f;
+          border-radius: 8px; padding: 9px 11px; font-size: 12px; line-height: 1.5;
+          box-shadow: 0 8px 28px rgba(0,0,0,.7); max-width: 260px; }
+        .tip.on { opacity: 1; }
+        .tip b { font-size: 13px; }
+        .tip .row { color: var(--text-secondary); }
+        .tip .k { color: var(--text-muted); display: inline-block; min-width: 52px; }
+
+        .key { display: flex; flex-wrap: wrap; gap: 18px; align-items: center;
+          margin-top: 14px; font-size: 11.5px; color: var(--text-muted); }
+        .ramp { display: flex; align-items: flex-end; gap: 2px; }
+        .ramp i { display: block; width: 13px; border-radius: 2px 2px 1px 1px; }
+        .swatch { display: inline-flex; align-items: center; gap: 6px; }
+        .hatch { width: 14px; height: 14px; border-radius: 3px; border: 1px dashed #3d3d38;
+          background: repeating-linear-gradient(45deg, #2b2b28 0 3px, transparent 3px 6px); }
+        .dot { width: 6px; height: 6px; border-radius: 50%; background: #fab219; }
+      </style>
+
+      <h1>Option A — spots × time heatmap</h1>
+      <p class="sub">Which spots are good, and when. Whole forecast in one view.</p>
+
+      <div class="bar">
+        <select id="ds"></select>
+        <button id="mono" aria-pressed="false">Greyscale proof</button>
+      </div>
+      <div class="note" id="note"></div>
+      <div class="scroll"><table id="grid"></table></div>
+
+      <div class="key">
+        <span class="swatch">worse
+          <span class="ramp" id="ramp"></span>
+        better</span>
+        <span class="swatch"><span class="hatch"></span> no data (never “bad”)</span>
+        <span class="swatch"><span class="dot"></span> diffraction taper — inferred, not sourced</span>
+        <span class="swatch">▣ outline = each spot’s peak hour</span>
+      </div>
+      <div class="tip" id="tip"></div>`;
+
+    this._grid = this.shadowRoot.getElementById('grid');
+    this._tip = this.shadowRoot.getElementById('tip');
+
+    const sel = this.shadowRoot.getElementById('ds');
+    sel.innerHTML = DATASETS.map(d => `<option value="${d.id}">${d.label}</option>`).join('');
+    sel.addEventListener('change', e => {
+      this._ds = DATASETS.find(d => d.id === e.target.value);
+      this.load();
+    });
+    this.shadowRoot.getElementById('mono').addEventListener('click', e => {
+      const on = this.toggleAttribute('mono');
+      e.target.setAttribute('aria-pressed', on);
+    });
+
+    // legend ramp: colour AND height move together, exactly as the cells do
+    this.shadowRoot.getElementById('ramp').innerHTML = RAMP
+      .map((c, i) => `<i style="background:${c};height:${6 + i * 4}px"></i>`).join('');
+  }
+
+  connectedCallback() {
+    if (location.hash === '#mono') {                 // shareable, and screenshot-testable
+      this.setAttribute('mono', '');
+      this.shadowRoot.getElementById('mono').setAttribute('aria-pressed', 'true');
+    }
+    this.load();
+  }
+
+  async load() {
+    const r = await fetch(this._ds.url);
+    this._d = await r.json();
+    this.render();
+  }
+
+  render() {
+    const d = this._d;
+    const note = this.shadowRoot.getElementById('note');
+    note.innerHTML = d.historical
+      ? `<b>Replay, not a forecast.</b> ${d.historical.note}`
+      : `<b>Live forecast.</b> Generated ${d.generatedAt.slice(0, 16).replace('T', ' ')}. ` +
+        `If every spot reads flat, that is the ocean, not the model — southern RI in summer is often 1&nbsp;ft at 5&nbsp;s.`;
+
+    const times = d.times;
+    // day boundaries, for the header and the separator rules
+    const days = [];
+    times.forEach((t, i) => {
+      const day = t.slice(0, 10);
+      if (!days.length || days[days.length - 1].day !== day) days.push({ day, start: i, n: 0 });
+      days[days.length - 1].n++;
+    });
+    const fmtDay = day => new Date(day + 'T12:00:00').toLocaleDateString('en-US',
+      { weekday: 'short', month: 'numeric', day: 'numeric' });
+
+    let html = '<thead><tr><th class="spot"></th>';
+    days.forEach(dd => {
+      html += `<th class="dayhdr daysep" colspan="${dd.n}">${fmtDay(dd.day)}</th>`;
+    });
+    html += '</tr></thead><tbody>';
+
+    for (const spot of d.spots) {
+      const row = d.scores[spot.id];
+      const vals = row.map(c => c.s).filter(v => v !== null);
+      const peak = vals.length ? Math.max(...vals) : null;
+      let peakDone = false;
+
+      html += `<tr><th class="spot">${spot.name}` +
+        (spot.confidence !== 'sourced' ? ` <span class="conf">${spot.confidence}</span>` : '') +
+        '</th>';
+
+      row.forEach((c, i) => {
+        const sep = days.some(dd => dd.start === i) ? ' daysep' : '';
+        if (c.s === null) {
+          html += `<td class="cell${sep}" data-i="${i}" data-spot="${spot.id}">
+                     <span class="nodata"></span></td>`;
+          return;
+        }
+        const isPeak = !peakDone && peak !== null && peak > 0 && c.s === peak;
+        if (isPeak) peakDone = true;
+        const h = Math.max(2, Math.round(c.s / 100 * 24));   // CHANNEL 2
+        html += `<td class="cell${sep}${isPeak ? ' peak' : ''}${c.caution ? ' caution' : ''}"
+                     data-i="${i}" data-spot="${spot.id}">
+                   <span class="fill" style="height:${h}px;background:${rampFor(c.s)}"></span>
+                 </td>`;
+      });
+      html += '</tr>';
+    }
+    this._grid.innerHTML = html + '</tbody>';
+
+    this._grid.addEventListener('mousemove', e => this._hover(e));
+    this._grid.addEventListener('mouseleave', () => this._tip.classList.remove('on'));
+    this._grid.addEventListener('click', e => this._hover(e));   // touch: tap a cell
+  }
+
+  _hover(e) {
+    const cell = e.target.closest('.cell');
+    if (!cell) { this._tip.classList.remove('on'); return; }
+    const d = this._d, i = +cell.dataset.i, id = cell.dataset.spot;
+    const c = d.scores[id][i];
+    const spot = d.spots.find(s => s.id === id);
+    const wind = d.conditions.wind[spotRegion(spot.id)][i];
+    const sw = d.conditions.swell[i], td = d.conditions.tide[i];
+    const t = new Date(d.times[i]);
+
+    const line = (k, v) => `<div class="row"><span class="k">${k}</span>${v}</div>`;
+    this._tip.innerHTML =
+      `<b>${spot.name}</b> — ${c.s === null ? 'no data' : c.s + '/100'}<br>` +
+      `<div class="row" style="margin-bottom:5px">${t.toLocaleString('en-US',
+        { weekday: 'short', hour: 'numeric', hour12: true })}</div>` +
+      (c.s === null
+        ? line('missing', (c.missing || []).join(', '))
+        : line('holding it back', LIMIT_LABEL[c.limiting] || c.limiting) +
+          line('surf', `${c.hEff} ft @ ${c.tEff}s from ${c.dEff}°`) +
+          (sw ? line('open-ocean', `${sw.h} ft @ ${sw.t}s from ${sw.d}°`) : '') +
+          (wind ? line('wind', `${wind.spd} kt from ${wind.dir}°`) : '') +
+          (td ? line('tide', `${td.ft} ft, ${td.stage}`) : '') +
+          (c.caution ? `<div class="row" style="color:#fab219;margin-top:5px">⚠ ${c.caution}</div>` : ''));
+
+    this._tip.classList.add('on');
+    const pad = 14;
+    let x = e.clientX + pad, y = e.clientY + pad;
+    if (x + 270 > innerWidth) x = e.clientX - 270;
+    if (y + 170 > innerHeight) y = e.clientY - 170;
+    this._tip.style.left = x + 'px';
+    this._tip.style.top = y + 'px';
+  }
+}
+
+/* the spot -> wind-region mapping the pipeline used (three different NWS cells) */
+function spotRegion(id) {
+  if (['narragansett-town-beach', 'monahans-dock'].includes(id)) return 'narragansett';
+  if (['point-judith-east', 'point-judith-south', 'k38', 'camp-cronin'].includes(id)) return 'point-judith';
+  return 'matunuck';
+}
+
+customElements.define('surf-heatmap', SurfHeatmap);
+</script>
+</body>
+</html>

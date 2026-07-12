@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Gansett Juice — forecast UI options</title>
+<style>
+  html, body { margin: 0; background: #111110; color: #fff; padding: 28px 20px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 620px; margin: 0 auto; }
+  h1 { font-size: 19px; margin: 0 0 6px; }
+  p { color: #86857c; font-size: 13px; line-height: 1.55; margin: 0 0 20px; }
+  a { display: block; background: #1a1a19; border: 1px solid #34342f; border-radius: 10px;
+    padding: 14px 16px; margin-bottom: 10px; color: #fff; text-decoration: none; }
+  a:hover { background: #22221f; border-color: #55554d; }
+  b { font-size: 14px; }
+  span { display: block; color: #86857c; font-size: 12.5px; margin-top: 3px; line-height: 1.5; }
+  code { background: #22221f; padding: 2px 6px; border-radius: 4px; font-size: 12px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Forecast UI — three options over the same JSON</h1>
+  <p>All three read the identical <code>forecast.json</code> and recompute nothing — the
+     scores are precomputed by the agent. Each has a dataset switcher: the
+     <b>Hurricane Lee</b> replay has actual surf in it, the <b>live</b> forecast is
+     whatever the ocean is doing (often flat).</p>
+
+  <a href="heatmap.html"><b>A · Spots × time heatmap</b>
+    <span>Dense and scannable, whole forecast in one view. Quality encoded twice —
+      colour <em>and</em> bar height — with a greyscale toggle to prove it.</span></a>
+
+  <a href="sparklines.html"><b>B · Per-spot sparklines over the drivers</b>
+    <span>Answers <em>why</em>. Every spot's line sits above the same swell / wind / tide
+      charts, so you can watch spots disagree about identical inputs.</span></a>
+
+  <a href="ranked.html"><b>C · Best now / today / this week</b>
+    <span>The phone answer. One hero number, a ranked list, tap to drill in.
+      Colour carries no information here at all.</span></a>
+
+  <p style="margin-top:22px">Serve over HTTP (<code>fetch</code> is blocked on <code>file://</code>):<br>
+     <code>python3 -m http.server 8000</code> then open
+     <code>localhost:8000/demos/</code></p>
+</main>
+</body>
+</html>
