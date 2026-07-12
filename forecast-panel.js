@@ -71,6 +71,13 @@ class SurfForecast extends HTMLElement {
         .next { font-size: 12.5px; color: #86857c; margin-top: 9px; padding-top: 9px;
           border-top: 1px solid #2b2b28; line-height: 1.5; }
         .next b { color: #9ec5f4; font-weight: 600; }
+        /* attribution sits WITH the claim, not in the small print */
+        .credit { font-size: 12px; color: #86857c; margin-top: 9px; padding-top: 9px;
+          border-top: 1px solid #2b2b28; line-height: 1.5; }
+        .credit a { color: #c3c2b7; font-weight: 600; text-decoration: none;
+          border-bottom: 1px solid #4a4a44; }
+        .credit a:hover { color: #fff; }
+        .credit b { color: #c3c2b7; font-weight: 600; }
 
         /* ---- what's actually happening right now ---- */
         .now { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px;
@@ -213,6 +220,7 @@ class SurfForecast extends HTMLElement {
           from ${compass(c.dEff)}${w ? `, wind ${Math.round(w.spd)} kt ${compass(w.dir)}` : ''}.
           ${c.limiting === 'none' ? 'Nothing holding it back.' : 'Limited by ' + FC_LIMIT[c.limiting] + '.'}
         </div>
+        ${this._credit()}
       </div>`;
     }
 
@@ -229,6 +237,31 @@ class SurfForecast extends HTMLElement {
       <div class="next">${nw
         ? `Next window: <b>${spot(nw.spot)}, ${fcDay(nw.at)} ${fcHour(nw.at)}</b> (${nw.s}/100).`
         : 'Nothing worth surfing in the next 5 days.'}</div>
+      ${this._credit()}
+    </div>`;
+  }
+
+  /* Warm Winds is the local shop's HUMAN report and the ground truth this model is
+     calibrated against. When we make a call -- "nothing worth surfing in the next 5
+     days" -- we show what THEY called, right next to it, with their name on it and a
+     link to their report. Attribution belongs where the claim is made, not in the
+     small print at the bottom.
+
+     We print the numbers we parsed and never their prose: the write-up is their
+     copyrighted work. Do not "improve" this by pasting in their summary. */
+  _credit() {
+    const gt = this._d.groundTruth;
+    if (!gt) return '';
+    const o = gt.outlook || [];
+    const short = s => s.split(',')[0].slice(0, 3);
+    const band = o.length && o.every(x => x.sizeFt === o[0].sizeFt)
+      ? `${o[0].sizeFt} ft through ${short(o[o.length - 1].day)}`
+      : o.length ? o.map(x => `${short(x.day)} ${x.sizeFt} ft`).join(' · ')
+      : `${gt.waveHeightFt} ft at ${gt.periodS}s`;
+    return `<div class="credit">
+      <a href="${gt.source}" target="_blank" rel="noopener">Warm Winds</a>${
+        gt.reporter ? ` — ${gt.reporter}` : ''} calls it <b>${band}</b>.
+      Their report is the human check on this forecast.
     </div>`;
   }
 
@@ -244,7 +277,8 @@ class SurfForecast extends HTMLElement {
       ${cell('Swell', sw ? sw.h : '–', sw ? `ft ${sw.t}s ${compass(sw.d)}` : '')}
       ${cell('Wind', w ? Math.round(w.spd) : '–', w ? `kt ${compass(w.dir)}` : '')}
       ${cell('Tide', td ? td.ft : '–', td ? `ft ${td.stage}` : '')}
-      ${cell('Water', gt && gt.waterTempF ? gt.waterTempF : '–', '°F')}
+      ${cell('Water', gt && gt.waterTempF ? gt.waterTempF : '–',
+              gt && gt.waterTempF ? '°F · Warm Winds' : '°F')}
     </div>`;
   }
 
@@ -367,8 +401,8 @@ class SurfForecast extends HTMLElement {
     return `<div class="foot">
       Updated ${fcWhen(d.generatedAt)} (${age < 1 ? 'just now' : Math.round(age) + 'h ago'});
       rebuilt daily at 5am.
-      ${gt ? `Warm Winds’ human call today: <b>${gt.waveHeightFt} ft @ ${gt.periodS}s</b> —
-        <a href="${gt.source}" target="_blank" rel="noopener">read their report</a>.` : ''}
+      ${gt ? `Observations and the human surf report are courtesy of
+        <a href="${gt.source}" target="_blank" rel="noopener">Warm Winds</a>, Narragansett.` : ''}
       <br>Scores are <b>ordinal, not cardinal</b> — “Deep Hole beats Green Hill today”,
       not “Deep Hole is a 62”. Not yet calibrated against real sessions.
     </div>`;
