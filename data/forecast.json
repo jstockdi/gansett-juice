@@ -1,6 +1,6 @@
 {
  "schema": "gansett-juice/forecast@1",
- "generatedAt": "2026-07-12T13:06:03.195805-04:00",
+ "generatedAt": "2026-07-12T13:02:08.388482-04:00",
  "timezone": "America/New_York",
  "grid": {
   "interval": "PT1H",
@@ -12,49 +12,49 @@
    "id": "gfswave016",
    "url": "https://marine-api.open-meteo.com/v1/marine?latitude=41.36&longitude=-71.49&hourly=swell_wave_height,swell_wave_direction,swell_wave_period,wind_wave_height,wind_wave_direction,wind_wave_period&timezone=America%2FNew_York&length_unit=imperial&models=ncep_gfswave016&forecast_days=6",
    "status": "ok",
-   "fetchedAt": "2026-07-12T13:06:01.629545-04:00"
+   "fetchedAt": "2026-07-12T13:02:06.073029-04:00"
   },
   {
    "id": "nws-BOX-66-56",
    "url": "https://api.weather.gov/gridpoints/BOX/66,56",
    "status": "ok",
-   "fetchedAt": "2026-07-12T13:06:01.933951-04:00"
+   "fetchedAt": "2026-07-12T13:02:06.345481-04:00"
   },
   {
    "id": "nws-BOX-65-53",
    "url": "https://api.weather.gov/gridpoints/BOX/65,53",
    "status": "ok",
-   "fetchedAt": "2026-07-12T13:06:02.128336-04:00"
+   "fetchedAt": "2026-07-12T13:02:06.676281-04:00"
   },
   {
    "id": "nws-BOX-63-54",
    "url": "https://api.weather.gov/gridpoints/BOX/63,54",
    "status": "ok",
-   "fetchedAt": "2026-07-12T13:06:02.321935-04:00"
+   "fetchedAt": "2026-07-12T13:02:07.135833-04:00"
   },
   {
    "id": "coops-hourly",
    "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&application=gansett-juice&begin_date=20260712&end_date=20260717&datum=MLLW&station=8455083&time_zone=lst_ldt&units=english&format=json&interval=h",
    "status": "ok",
-   "fetchedAt": "2026-07-12T13:06:02.717193-04:00"
+   "fetchedAt": "2026-07-12T13:02:07.295612-04:00"
   },
   {
    "id": "coops-hilo",
    "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&application=gansett-juice&begin_date=20260712&end_date=20260717&datum=MLLW&station=8455083&time_zone=lst_ldt&units=english&format=json&interval=hilo",
    "status": "ok",
-   "fetchedAt": "2026-07-12T13:06:02.763774-04:00"
+   "fetchedAt": "2026-07-12T13:02:07.473212-04:00"
   },
   {
    "id": "ndbc-44097",
    "url": "https://www.ndbc.noaa.gov/data/realtime2/44097.spec",
    "status": "ok",
-   "fetchedAt": "2026-07-12T13:06:03.020850-04:00"
+   "fetchedAt": "2026-07-12T13:02:08.131142-04:00"
   },
   {
    "id": "warmwinds",
    "url": "https://www.warmwinds.com/surf-report",
    "status": "ok",
-   "fetchedAt": "2026-07-12T13:06:03.178879-04:00"
+   "fetchedAt": "2026-07-12T13:02:08.377382-04:00"
   }
  ],
  "times": [
@@ -201,7 +201,7 @@
   "periodS": 10.0,
   "swellDir": 136.0,
   "windMph": 6.0,
-  "windDir": 300.0,
+  "windDir": 320.0,
   "waterTempF": 65.0,
   "outlook": [
    {
@@ -20647,6 +20647,154 @@
    }
   ]
  },
+ "daylight": [
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true
+ ],
+ "sun": {
+  "2026-07-12": {
+   "sunrise": "2026-07-12T05:22:47.058887-04:00",
+   "sunset": "2026-07-12T20:20:07.909497-04:00"
+  },
+  "2026-07-13": {
+   "sunrise": "2026-07-13T05:23:32.742693-04:00",
+   "sunset": "2026-07-13T20:19:38.410260-04:00"
+  },
+  "2026-07-14": {
+   "sunrise": "2026-07-14T05:24:19.526851-04:00",
+   "sunset": "2026-07-14T20:19:06.910028-04:00"
+  },
+  "2026-07-15": {
+   "sunrise": "2026-07-15T05:25:07.365824-04:00",
+   "sunset": "2026-07-15T20:18:33.422837-04:00"
+  },
+  "2026-07-16": {
+   "sunrise": "2026-07-16T05:25:56.214021-04:00",
+   "sunset": "2026-07-16T20:17:57.963912-04:00"
+  },
+  "2026-07-17": {
+   "sunrise": "2026-07-17T05:26:46.025892-04:00",
+   "sunset": "2026-07-17T20:17:20.549616-04:00"
+  }
+ },
  "summary": {
   "bestNow": [
    {
@@ -20693,13 +20841,13 @@
   "bestToday": [
    {
     "spot": "deep-hole",
-    "s": 2,
-    "at": "2026-07-12T22:00:00-04:00"
+    "s": 1,
+    "at": "2026-07-12T19:00:00-04:00"
    },
    {
     "spot": "matunuck-trestles",
-    "s": 2,
-    "at": "2026-07-12T21:00:00-04:00"
+    "s": 1,
+    "at": "2026-07-12T19:00:00-04:00"
    },
    {
     "spot": "narragansett-town-beach",
@@ -20745,23 +20893,13 @@
   "bestWeek": [
    {
     "spot": "deep-hole",
-    "s": 14,
-    "at": "2026-07-14T04:00:00-04:00"
+    "s": 6,
+    "at": "2026-07-15T16:00:00-04:00"
    },
    {
     "spot": "matunuck-trestles",
-    "s": 13,
-    "at": "2026-07-14T04:00:00-04:00"
-   },
-   {
-    "spot": "matunuck-the-point",
-    "s": 2,
-    "at": "2026-07-14T04:00:00-04:00"
-   },
-   {
-    "spot": "green-hill",
-    "s": 1,
-    "at": "2026-07-14T04:00:00-04:00"
+    "s": 6,
+    "at": "2026-07-15T19:00:00-04:00"
    },
    {
     "spot": "narragansett-town-beach",
@@ -20792,7 +20930,19 @@
     "spot": "camp-cronin",
     "s": 0,
     "at": "2026-07-12T14:00:00-04:00"
+   },
+   {
+    "spot": "matunuck-the-point",
+    "s": 0,
+    "at": "2026-07-12T14:00:00-04:00"
+   },
+   {
+    "spot": "green-hill",
+    "s": 0,
+    "at": "2026-07-12T14:00:00-04:00"
    }
-  ]
+  ],
+  "worthItThreshold": 35,
+  "nextWindow": null
  }
 }

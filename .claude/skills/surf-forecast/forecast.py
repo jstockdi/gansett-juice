@@ -425,6 +425,38 @@ def log_calibration(report, path):
     return row
 
 
+# ================================================================= daylight
+
+SPOT_LAT, SPOT_LON = 41.38, -71.50      # centre of the stretch; spots span ~12km, <1 min of sun
+
+
+def sun_times(day):
+    """Sunrise/sunset (local) for a date, NOAA equation. Stdlib math only.
+
+    This exists because a forecast that recommends surfing at 2am is not a
+    forecast. Scores are computed for every hour, but only DAYLIGHT hours are
+    ever ranked or recommended -- see summarise()."""
+    n = day.timetuple().tm_yday
+    g = 2 * math.pi / 365 * (n - 1 + 0.5)                       # fractional year, midday
+    eq = 229.18 * (0.000075 + 0.001868 * math.cos(g) - 0.032077 * math.sin(g)
+                   - 0.014615 * math.cos(2 * g) - 0.040849 * math.sin(2 * g))
+    dec = (0.006918 - 0.399912 * math.cos(g) + 0.070257 * math.sin(g)
+           - 0.006758 * math.cos(2 * g) + 0.000907 * math.sin(2 * g)
+           - 0.002697 * math.cos(3 * g) + 0.00148 * math.sin(3 * g))
+    lat = math.radians(SPOT_LAT)
+    cos_ha = (math.cos(math.radians(90.833)) / (math.cos(lat) * math.cos(dec))
+              - math.tan(lat) * math.tan(dec))
+    if cos_ha > 1 or cos_ha < -1:
+        return None, None                                       # polar day/night; not here
+    ha = math.degrees(math.acos(cos_ha))
+
+    def at(minutes_utc):
+        base = datetime(day.year, day.month, day.day, tzinfo=timezone.utc)
+        return (base + timedelta(minutes=minutes_utc)).astimezone(TZ)
+
+    return at(720 - 4 * (SPOT_LON + ha) - eq), at(720 - 4 * (SPOT_LON - ha) - eq)
+
+
 # =================================================================== scoring
 
 def ang_diff(a, b):
@@ -617,6 +649,14 @@ def build(use_cache=True, window=None):
     times, conditions = [], {"swell": [], "windWave": [],
                              "wind": {r: [] for r in NWS_GRIDS}, "tide": []}
     tides = []
+    daylight, sun = [], {}
+    for dt in grid:                       # sunrise/sunset once per day, then reused
+        day = dt.date()
+        if day not in sun:
+            sr, ss = sun_times(day)
+            sun[day] = (sr, ss)
+        sr, ss = sun[day]
+        daylight.append(bool(sr and ss and sr <= dt <= ss))
 
     for i, dt in enumerate(grid):
         k = iso_naive(dt)
@@ -662,7 +702,10 @@ def build(use_cache=True, window=None):
                    ("id", "name", "lat", "lon", "facing", "bottom", "confidence", "notes")}
                   for s in spots],
         "scores": scores,
-        "summary": summarise(spots, scores, times),
+        "daylight": daylight,
+        "sun": {str(d): {"sunrise": a.isoformat(), "sunset": b.isoformat()}
+                for d, (a, b) in sorted(sun.items()) if a and b},
+        "summary": summarise(spots, scores, times, daylight),
     }
     if window:
         # Loudly, in the artifact itself: this is not a forecast.
@@ -679,13 +722,21 @@ def build(use_cache=True, window=None):
     return report
 
 
-def summarise(spots, scores, times):
-    """Precomputed rankings. The UI must never recompute a score."""
+WORTH_IT = 35          # below this, we do not pretend there is a session to recommend
+
+
+def summarise(spots, scores, times, daylight):
+    """Precomputed rankings. The UI must never recompute a score.
+
+    Only DAYLIGHT hours are ranked. A 2am peak is not a surf recommendation, and
+    ranking one is how the first version ended up telling people to paddle out at
+    02:00 into a 2/100. Scores still exist for every hour -- the heatmap shows
+    them -- but nothing dark is ever *recommended*."""
     def best_in(spot_id, lo, hi):
         best = None
         for i in range(lo, min(hi, len(times))):
             c = scores[spot_id][i]
-            if c["s"] is None:
+            if c["s"] is None or not daylight[i]:
                 continue
             if best is None or c["s"] > best[1]:
                 best = (times[i], c["s"])
@@ -703,10 +754,28 @@ def summarise(spots, scores, times):
 
     now = [{"spot": s["id"], "s": scores[s["id"]][0]["s"]}
            for s in spots if scores[s["id"]][0]["s"] is not None]
+
+    week = rank(0, len(times))
+    # The question a flat forecast still has to answer: when is it next worth going?
+    nxt = None
+    for i in range(len(times)):
+        if not daylight[i]:
+            continue
+        cands = [(scores[s["id"]][i]["s"], s["id"]) for s in spots
+                 if scores[s["id"]][i]["s"] is not None]
+        if cands and max(cands)[0] >= WORTH_IT:
+            sc, sid = max(cands)
+            nxt = {"spot": sid, "s": sc, "at": times[i]}
+            break
+
     return {
         "bestNow": sorted(now, key=lambda x: -x["s"]),
         "bestToday": rank(0, today),
-        "bestWeek": rank(0, len(times)),
+        "bestWeek": week,
+        "worthItThreshold": WORTH_IT,
+        # null = nothing in the whole 5-day window clears the bar. Say so; don't
+        # dress up the least-bad hour as a recommendation.
+        "nextWindow": nxt,
     }
 
 
