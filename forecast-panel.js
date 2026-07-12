@@ -79,6 +79,17 @@ class SurfForecast extends HTMLElement {
         .credit a:hover { color: #fff; }
         .credit b { color: #c3c2b7; font-weight: 600; }
 
+        .why-box { background: #1a1a19; border: 1px solid #34342f; border-radius: 12px;
+          margin-bottom: 10px; font-size: 12.5px; }
+        .why-box summary { padding: 11px 14px; cursor: pointer; color: #c3c2b7;
+          font-weight: 600; list-style: none; -webkit-tap-highlight-color: transparent; }
+        .why-box summary::-webkit-details-marker { display: none; }
+        .why-box summary::before { content: '▸ '; color: #86857c; }
+        .why-box[open] summary::before { content: '▾ '; }
+        .why-box ul { margin: 0; padding: 0 14px 12px 30px; color: #86857c; line-height: 1.55; }
+        .why-box li { margin-bottom: 6px; }
+        .why-box li:last-child { margin-bottom: 0; }
+
         /* ---- what's actually happening right now ---- */
         .now { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px;
           background: #34342f; border: 1px solid #34342f; border-radius: 10px;
@@ -224,21 +235,46 @@ class SurfForecast extends HTMLElement {
       </div>`;
     }
 
-    // FLAT — say so. Do not dress up the least-bad hour as a recommendation.
+    // SMALL / FLAT. Do not dress up the least-bad hour as a recommendation -- but do
+    // not overclaim either. "Not worth it" is a shortboarder's verdict; 1.2ft clean is
+    // a longboard day. Say what it IS and let the reader decide.
     const nw = sum.nextWindow;
     const sw = d.conditions.swell[0];
+    const big = (sum.rationale || []).length ? this._biggest() : 0;
+    const loggable = big >= 0.8;
     return `<div class="verdict">
       <div class="kicker">Right now</div>
-      <div class="call dim">Not worth it${today && today.s > 0 ? ' anywhere' : ''}.</div>
+      <div class="call dim">${loggable ? 'Small — longboard only.' : 'Flat.'}</div>
       <div class="detail">${sw
         ? `<b>${sw.h} ft at ${sw.t}s</b> from ${compass(sw.d)} — ${
             sw.t < 7 ? 'that’s windchop, not swell' : 'too small to break'}.`
         : 'No swell data.'}</div>
       <div class="next">${nw
         ? `Next window: <b>${spot(nw.spot)}, ${fcDay(nw.at)} ${fcHour(nw.at)}</b> (${nw.s}/100).`
-        : 'Nothing worth surfing in the next 5 days.'}</div>
+        : 'No proper swell in the next 5 days.'}</div>
       ${this._credit()}
-    </div>`;
+    </div>` + this._why();
+  }
+
+  _biggest() {
+    const d = this._d;
+    let m = 0;
+    for (const row of Object.values(d.scores))
+      row.forEach((c, i) => { if (c.s !== null && d.daylight[i] && c.hEff > m) m = c.hEff; });
+    return m;
+  }
+
+  /* The reasoning, not just the verdict. Precomputed by the agent (summary.rationale)
+     so the UI stays dumb. It exists because "not worth it" is a judgement, and a
+     judgement you can't inspect is just an assertion -- especially when it disagrees
+     with the shop's human call while agreeing with every number in it. */
+  _why() {
+    const r = this._d.summary.rationale || [];
+    if (!r.length) return '';
+    return `<details class="why-box" ${this._why0 ? 'open' : ''}>
+      <summary>Why we’re calling it this</summary>
+      <ul>${r.map(x => `<li>${x}</li>`).join('')}</ul>
+    </details>`;
   }
 
   /* Warm Winds is the local shop's HUMAN report and the ground truth this model is

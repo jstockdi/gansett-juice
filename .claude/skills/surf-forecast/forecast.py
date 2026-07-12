@@ -386,6 +386,46 @@ def fetch_warmwinds(src):
     return out if out["waveHeightFt"] is not None else None
 
 
+BAND = re.compile(r"([\d.]+)\s*-\s*([\d.]+)")
+
+
+def compare_truth(gt, report):
+    """Do we and the human agree -- and if not, about WHAT?
+
+    This matters more than it looks. On a small day we say "not worth it" and Warm
+    Winds says "knee high, rideable with logs". Those are not the same claim: we
+    agree exactly on the SIZE and disagree on the VERDICT, because our worth-it bar
+    quietly assumes you want a wave with some push behind it. A forecast that hides
+    that assumption is being dishonest about where its judgement ends and its taste
+    begins. So: compare the numbers, and name which kind of disagreement it is."""
+    o = gt.get("outlook") or []
+    m = BAND.match(o[0]["sizeFt"]) if o else None
+    if not m:
+        return None
+    lo, hi = float(m.group(1)), float(m.group(2))
+
+    heffs = [c["hEff"] for row in report["scores"].values() for i, c in enumerate(row[:24])
+             if c["s"] is not None and report["daylight"][i]]
+    model = round(max(heffs), 2) if heffs else 0.0
+    best = report["summary"]["bestToday"]
+    bar = report["summary"]["worthItThreshold"]
+    top = best[0]["s"] if best else 0
+
+    if model < lo - 0.5:
+        size = "model-smaller"
+    elif model > hi + 0.5:
+        size = "model-bigger"
+    else:
+        size = "agree"
+
+    # they publish a size band, not a score -- if they're calling it rideable at all
+    # and we're calling it not worth it, that's a THRESHOLD disagreement, not a data one
+    verdict = "agree" if (top >= bar) == (hi >= 2) else "threshold"
+
+    return {"humanBandFt": [lo, hi], "modelMaxFt": model, "size": size, "verdict": verdict,
+            "modelTop": top, "bar": bar}
+
+
 def log_calibration(report, path):
     """Append one row: what the human said vs what the model said, same day.
 
@@ -707,6 +747,11 @@ def build(use_cache=True, window=None):
                 for d, (a, b) in sorted(sun.items()) if a and b},
         "summary": summarise(spots, scores, times, daylight),
     }
+    if truth:
+        # Say plainly where we agree with the human and where we merely differ in taste.
+        report["groundTruth"]["agreement"] = compare_truth(truth, report)
+    report["summary"]["rationale"] = rationale(report, report.get("groundTruth"))
+
     if window:
         # Loudly, in the artifact itself: this is not a forecast.
         report["historical"] = {
@@ -723,6 +768,68 @@ def build(use_cache=True, window=None):
 
 
 WORTH_IT = 35          # below this, we do not pretend there is a session to recommend
+
+
+def rationale(report, gt):
+    """Say WHY, in plain words, and be honest about where judgement becomes taste.
+
+    "Nothing worth surfing" is a stronger claim than the data supports, and it can
+    disagree with the shop's human report while agreeing with it on every number.
+    The gap is not data, it is the worth-it bar: 35/100 quietly assumes you want a
+    wave with push behind it. 0-1 ft is a longboard day, not a nothing day.
+
+    So the UI shows the reasoning, not just the verdict. Note we reason about OUR
+    threshold in OUR voice -- we never put words in Warm Winds' mouth, only their
+    numbers."""
+    out = []
+    sw = report["conditions"]["swell"][0]
+    scores = report["scores"]
+    day = [i for i in range(24) if report["daylight"][i]]
+
+    heffs = [c["hEff"] for row in scores.values() for i, c in enumerate(row[:24])
+             if c["s"] is not None and report["daylight"][i]]
+    big = round(max(heffs), 2) if heffs else 0.0
+
+    lims = {}
+    for row in scores.values():
+        for i in day:
+            c = row[i]
+            if c["s"] is not None and c["s"] < WORTH_IT:
+                lims[c["limiting"]] = lims.get(c["limiting"], 0) + 1
+    main = max(lims, key=lims.get) if lims else None
+
+    if main == "size":
+        out.append(f"Every spot is size-limited — the biggest surf reaching any of them "
+                   f"today is {big} ft.")
+    elif main == "wind":
+        out.append("Wind is the problem, not the swell — it's onshore at the spots that "
+                   "have waves.")
+    elif main == "tide":
+        out.append("The swell is there; the tide is wrong at the spots that want it.")
+    elif main == "period":
+        out.append("There is size but no period behind it — the waves have no push.")
+
+    if sw and sw["t"] < 7:
+        out.append(f"Period is {sw['t']}s. Under about 7s it's local windchop, not "
+                   f"groundswell, so it carries no energy.")
+
+    if gt and gt.get("agreement"):
+        a = gt["agreement"]
+        lo, hi = a["humanBandFt"]
+        if a["size"] == "agree":
+            out.append(f"Warm Winds calls it {lo:g}–{hi:g} ft; we make it {a['modelMaxFt']} ft. "
+                       f"We agree on the size.")
+        else:
+            out.append(f"Warm Winds calls it {lo:g}–{hi:g} ft; we make it {a['modelMaxFt']} ft — "
+                       f"we're reading it {'smaller' if a['size'] == 'model-smaller' else 'bigger'} "
+                       f"than they are. Trust them over us: they're looking at it.")
+
+    # the honest caveat -- this is our taste, not a fact about the ocean
+    if main == "size" and big >= 0.8:
+        out.append(f"Our “worth it” bar ({WORTH_IT}/100) assumes you want a wave with some "
+                   f"push. At {big} ft it's a longboard day, not a nothing day — if you log, "
+                   f"go anyway.")
+    return out
 
 
 def summarise(spots, scores, times, daylight):
