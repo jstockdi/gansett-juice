@@ -50,8 +50,11 @@ jobs:
       - name: Cache-bust forecast-panel.js
         if: steps.gate.outputs.run == 'true'
         run: |
+          test -s index.html || { echo "index.html is EMPTY -- refusing to build"; exit 1; }
           H=$(md5sum forecast-panel.js | cut -c1-8)
           sed -i -E "s|forecast-panel\.js(\?v=[a-f0-9]+)?|forecast-panel.js?v=$H|" index.html
+          # a missing script tag means the app cannot boot -- fail the build, don't ship it
+          grep -q "surf-forecast" index.html || { echo "index.html lost <surf-forecast>"; exit 1; }
           grep -o 'forecast-panel.js?v=[a-f0-9]*' index.html
 
       - name: Commit if changed
