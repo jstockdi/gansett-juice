@@ -425,7 +425,10 @@ def fetch_spectrum(src):
             "organization": round(near / total * 100),
             # Hs = 4*sqrt(m0); m0 is the spectral area. A cross-check on the model.
             "hsFt": round(4 * math.sqrt(sum(e * 0.005 for _, e in bins)) / FT_TO_M, 1),
-            "bins": [[round(1 / fr, 1), round(e, 4)] for fr, e in bins],   # [period_s, m^2/Hz]
+            # 2dp, not 1dp: the buoy samples uniformly in FREQUENCY, so near the short-period
+            # end two neighbouring bins can round to the SAME period at 1dp and collapse into
+            # one point on the chart. <wave-spectrum> merges any that still collide.
+            "bins": [[round(1 / fr, 2), round(e, 4)] for fr, e in bins],   # [period_s, m^2/Hz]
         }
     return None
 

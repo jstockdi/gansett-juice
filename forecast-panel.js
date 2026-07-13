@@ -102,8 +102,7 @@ class SurfForecast extends HTMLElement {
           border: 1px solid #2b2b28; border-radius: 6px; }
 
         .spec-body { padding: 0 14px 12px; }
-        .spec-body svg { display: block; width: 100%; height: auto; background: #15161a;
-          border: 1px solid #2b2b28; border-radius: 6px; margin-bottom: 8px; }
+        wave-spectrum { display: block; margin-bottom: 8px; }
         .spec-key { font-size: 11.5px; color: #86857c; line-height: 1.55; }
         .spec-key b { color: #c3c2b7; }
         .spec-num { display: flex; gap: 14px; margin-bottom: 6px; }
@@ -263,6 +262,12 @@ class SurfForecast extends HTMLElement {
       this._verdict() + this._spectrum() + this._now() +
       `<div class="ranked">${this._ranked()}</div>
        <div class="grid">${this._heatmap()}</div>` + this._foot();
+
+    // <wave-spectrum> takes its data as a property, not an attribute -- the spectrum is
+    // an object, and stringifying it into HTML just to parse it back out is silly.
+    const ws = this.shadowRoot.querySelector('wave-spectrum');
+    if (ws) ws.data = d.spectrum;
+
     this._bind();
   }
 
@@ -715,62 +720,29 @@ class SurfForecast extends HTMLElement {
   _spectrum() {
     const sp = this._d.spectrum;
     if (!sp || !sp.bins || !sp.bins.length) return '';
-    const W = 300, H = 84, PAD = 5;
-    const tMin = 2, tMax = 22;
-    const bins = sp.bins.filter(([t]) => t >= tMin && t <= tMax).sort((a, b) => a[0] - b[0]);
-    if (!bins.length) return '';
-    const max = Math.max(...bins.map(b => b[1]), 0.0001);
-    const x = t => PAD + (t - tMin) / (tMax - tMin) * (W - PAD * 2);
-    const bw = Math.max(2, (W - PAD * 2) / bins.length - 1);
 
-    const bars = bins.map(([t, e]) => {
-      const h = (e / max) * (H - 18);
-      const near = Math.abs(t - sp.peakPeriod) < 0.6;
-      return `<rect x="${(x(t) - bw / 2).toFixed(1)}" y="${(H - 13 - h).toFixed(1)}"
-        width="${bw.toFixed(1)}" height="${Math.max(0.6, h).toFixed(1)}" rx="1"
-        fill="${near ? '#cde2fb' : '#3987e5'}" opacity="${near ? 1 : 0.72}"/>`;
-    }).join('');
-    const ticks = [4, 8, 12, 16, 20].map(t =>
-      `<text x="${x(t).toFixed(1)}" y="${H - 2}" font-size="7.5" fill="#6a695f"
-         text-anchor="middle">${t}</text>`).join('');
-
-    // y axis: without it a tall bar is just "the tallest bar", which says nothing about
-    // how much energy is actually in the water
-    const half = (max / 2);
-    const gy = v => H - 13 - (v / max) * (H - 18);
-    const axis = `
-      <line x1="0" y1="${(H - 13).toFixed(1)}" x2="${W}" y2="${(H - 13).toFixed(1)}"
-        stroke="#2b2b28" stroke-width="1"/>
-      <line x1="0" y1="${gy(max).toFixed(1)}" x2="${W}" y2="${gy(max).toFixed(1)}"
-        stroke="#2b2b28" stroke-width="1" stroke-dasharray="2 3"/>
-      <line x1="0" y1="${gy(half).toFixed(1)}" x2="${W}" y2="${gy(half).toFixed(1)}"
-        stroke="#242422" stroke-width="1" stroke-dasharray="2 3"/>
-      <text x="2" y="${(gy(max) - 2).toFixed(1)}" font-size="7.5" fill="#86857c">
-        ${max.toFixed(2)} m²/Hz</text>
-      <text x="2" y="${(gy(half) - 2).toFixed(1)}" font-size="7" fill="#6a695f">
-        ${half.toFixed(2)}</text>
-      <text x="${W / 2}" y="${H + 8}" font-size="7.5" fill="#6a695f"
-        text-anchor="middle">wave period (seconds)</text>`;
-
+    const max = Math.max(...sp.bins.map(b => b[1]), 0.0001);
     const org = sp.organization;
     const read = org >= 60 ? 'one clean, organised swell'
       : org >= 40 ? 'mostly one swell, with some clutter'
       : 'energy smeared across periods — crossed swells or windblown slop';
 
+    // the chart is <wave-spectrum>; render() hands it the data after this HTML lands
     return `<details class="why-box spec">
       <summary>What’s actually in the water right now</summary>
       <div class="spec-body">
-        <svg viewBox="0 0 ${W} ${H + 10}">${axis}${bars}${ticks}</svg>
+        <wave-spectrum></wave-spectrum>
         <div class="spec-key">
           <div class="spec-num">
             <span>Peak <b>${sp.peakPeriod}s</b></span>
             <span>Hs <b>${sp.hsFt} ft</b></span>
             <span>Organised <b>${org}%</b></span>
           </div>
-          Bar height = how much wave energy sits at that period
+          Curve height = how much wave energy sits at that period
           (<b>${max.toFixed(2)} m²/Hz</b> at the peak). Reads as <b>${read}</b>.
-          Height, period and direction look identical for one clean swell and two
-          crossing ones — this is the only chart that tells them apart.
+          One sharp spike is a single organised swell; two humps are crossed swells.
+          Height, period and direction look identical for both — this is the only
+          chart that tells them apart.
           <br><span class="obs">Buoy ${sp.buoy} (Block Island), measured ${fcWhen(sp.at)} —
           <b>observed, not forecast</b>. There is no forecast spectrum: the wave model
           gives partitions, not a spectrum.</span>
@@ -810,3 +782,103 @@ class SurfForecast extends HTMLElement {
   }
 }
 customElements.define('surf-forecast', SurfForecast);
+
+
+/* <wave-spectrum> -- the buoy's energy spectrum, as a curve.
+   Set `.data` to the forecast's `spectrum` object; it draws itself.
+
+   It is a LINE, not bars, and that is a correctness fix rather than a style choice.
+   The buoy samples uniformly in FREQUENCY, and the build hands us 1/f as a period.
+   Period is not linear in frequency, so those samples arrive bunched at the short
+   end and stretched at the long end. Bars need a width, and there is no honest width
+   to give them: a fixed one overlapped its neighbours by more than a full bar at 3 s
+   (a smeared block) while leaving gaps 5x the bar width at 18 s (a picket fence).
+   A curve just puts each sample at its true period and joins them, so uneven spacing
+   stops being a defect and becomes a non-issue. */
+class WaveSpectrum extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+  }
+
+  set data(sp) { this._sp = sp; this._draw(); }
+  get data() { return this._sp; }
+
+  connectedCallback() { if (this._sp) this._draw(); }
+
+  _draw() {
+    const sp = this._sp;
+    if (!sp || !sp.bins || !sp.bins.length) { this.shadowRoot.innerHTML = ''; return; }
+
+    const W = 320, H = 112, L = 36, R = 8, T = 14, B = 28;
+    const tMin = 2, tMax = 22;
+    const x0 = L, x1 = W - R, y0 = H - B, y1 = T;
+
+    /* Merge samples that collapse onto the same period. The build rounds 1/f, so two
+       neighbouring frequencies can land on the same period -- as points that is a
+       vertical jag in the curve, not a feature of the sea. */
+    const m = new Map();
+    for (const [t, e] of sp.bins) {
+      if (t < tMin || t > tMax) continue;
+      const p = m.get(t);
+      if (p) { p.sum += e; p.n++; } else m.set(t, { sum: e, n: 1 });
+    }
+    const pts = [...m.entries()].map(([t, v]) => [t, v.sum / v.n]).sort((a, b) => a[0] - b[0]);
+    if (pts.length < 2) { this.shadowRoot.innerHTML = ''; return; }
+
+    const max = Math.max(...pts.map(p => p[1]), 0.0001);
+    const X = t => x0 + (t - tMin) / (tMax - tMin) * (x1 - x0);
+    const Y = e => y0 - (e / max) * (y0 - y1);
+
+    const line = pts.map((p, i) =>
+      `${i ? 'L' : 'M'} ${X(p[0]).toFixed(1)} ${Y(p[1]).toFixed(1)}`).join(' ');
+    const area = `${line} L ${X(pts[pts.length - 1][0]).toFixed(1)} ${y0}
+                  L ${X(pts[0][0]).toFixed(1)} ${y0} Z`;
+
+    /* y axis: without it a tall peak is just "the tallest peak", which says nothing
+       about how much energy is actually in the water. */
+    const grid = v => `
+      <line x1="${x0}" y1="${Y(v).toFixed(1)}" x2="${x1}" y2="${Y(v).toFixed(1)}"
+        stroke="#2b2b28" stroke-width="1" stroke-dasharray="2 3"/>
+      <text x="${x0 - 6}" y="${Y(v).toFixed(1)}" font-size="7.5" fill="#6a695f"
+        text-anchor="end" dominant-baseline="middle">${v.toFixed(2)}</text>`;
+
+    const ticks = [4, 8, 12, 16, 20].map(t =>
+      `<text x="${X(t).toFixed(1)}" y="${y0 + 11}" font-size="7.5" fill="#6a695f"
+         text-anchor="middle">${t}</text>`).join('');
+
+    /* Anchor the marker to the curve point nearest the build's peakPeriod, rather than
+       to our own max: the two agree, and the panel prints peakPeriod right below. */
+    const pk = pts.reduce((a, b) =>
+      Math.abs(b[0] - sp.peakPeriod) < Math.abs(a[0] - sp.peakPeriod) ? b : a);
+    const px = X(pk[0]), flip = px > x1 - 46;
+    const peak = `
+      <line x1="${px.toFixed(1)}" y1="${Y(pk[1]).toFixed(1)}" x2="${px.toFixed(1)}" y2="${y0}"
+        stroke="#cde2fb" stroke-width="1" stroke-dasharray="2 2" opacity=".5"/>
+      <circle cx="${px.toFixed(1)}" cy="${Y(pk[1]).toFixed(1)}" r="2.6" fill="#cde2fb"/>
+      <text x="${(px + (flip ? -5 : 5)).toFixed(1)}" y="${(y1 + 7).toFixed(1)}" font-size="8"
+        fill="#cde2fb" text-anchor="${flip ? 'end' : 'start'}">peak ${sp.peakPeriod}s</text>`;
+
+    this.shadowRoot.innerHTML = `
+      <style>
+        :host { display: block; }
+        svg { display: block; width: 100%; height: auto; background: #15161a;
+              border: 1px solid #2b2b28; border-radius: 6px; }
+      </style>
+      <svg viewBox="0 0 ${W} ${H}" role="img"
+        aria-label="Wave energy density against wave period. Peak ${sp.peakPeriod} seconds, ${sp.organization}% organised.">
+        <text x="${x0 - 6}" y="7" font-size="7" fill="#6a695f" text-anchor="end">m²/Hz</text>
+        ${grid(max)}${grid(max / 2)}
+        <line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y0}" stroke="#3a3a34" stroke-width="1"/>
+        <text x="${x0 - 6}" y="${y0}" font-size="7.5" fill="#6a695f"
+          text-anchor="end" dominant-baseline="middle">0</text>
+        <path d="${area}" fill="#3987e5" opacity=".18"/>
+        <path d="${line}" fill="none" stroke="#6da7ec" stroke-width="2"
+          stroke-linejoin="round" stroke-linecap="round"/>
+        ${peak}${ticks}
+        <text x="${((x0 + x1) / 2).toFixed(1)}" y="${H - 3}" font-size="7.5" fill="#6a695f"
+          text-anchor="middle">wave period (seconds)</text>
+      </svg>`;
+  }
+}
+customElements.define('wave-spectrum', WaveSpectrum);
