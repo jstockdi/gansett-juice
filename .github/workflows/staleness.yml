@@ -1,0 +1,118 @@
+name: staleness
+
+# A dead-man's switch for the daily forecast build.
+#
+# A build that FAILS emails you. A build that never RUNS emails you nothing --
+# it is indistinguishable from a build that ran and found nothing to commit.
+# That is exactly how the 5am run on 2026-07-13 went missing: GitHub simply
+# never fired the cron, and the only reason anyone noticed was that Jonah
+# happened to ask.
+#
+# So this job watches the OUTPUT, not the run: "did a forecast land today?" That
+# one question catches all three failure modes at once -- a cron that never
+# fired, a build that failed, and a build that ran green but wrote nothing --
+# without caring which one it was.
+#
+# Caveat, stated plainly: this is a cron watching a cron, and it shares the
+# failure mode it is meant to catch -- if GitHub drops THIS slot too, the alarm
+# is as silent as the thing it watches. It fires in a different hour to make a
+# correlated drop unlikely, but that is mitigation, not immunity. The only truly
+# independent watchdog lives off-platform (e.g. the forecast job pings a
+# healthchecks.io URL on success, and that service alerts when the ping stops).
+# Worth adding if this ever misses one.
+on:
+  schedule:
+    - cron: '43 13 * * *'   # ~9:43am ET, a few hours after the 5:17am build
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  freshness:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Is there a forecast from this morning?
+        id: age
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          from datetime import datetime, timezone
+          from zoneinfo import ZoneInfo
+
+          # Ask "is it from TODAY?", not "is it under N hours old?".
+          #
+          # The age question has a hole, and it is the one that bit us. An age
+          # rule reads the FILE's clock, not the BUILD's calendar, so any
+          # off-schedule write resets it. On 2026-07-13 the 5am build never
+          # fired, but the newest forecast was a 7:14pm manual dispatch from the
+          # night before -- only 14.5h old at watchdog time. A 26h rule would
+          # have called that fresh and said nothing, through the exact outage it
+          # exists to catch.
+          #
+          # "A build landed today, in Rhode Island's calendar" is the claim we
+          # actually want to make, and it survives a late manual dispatch.
+          ET = ZoneInfo("America/New_York")
+          gen = datetime.fromisoformat(json.load(open("data/forecast.json"))["generatedAt"])
+          gen_day = gen.astimezone(ET).date()
+          today = datetime.now(timezone.utc).astimezone(ET).date()
+          hours = (datetime.now(timezone.utc) - gen).total_seconds() / 3600
+
+          print(f"hours={hours:.1f}")
+          print(f"generated={gen.isoformat()}")
+          print(f"generated_day={gen_day}")
+          print(f"stale={'true' if gen_day != today else 'false'}")
+          PY
+          cat "$GITHUB_OUTPUT"
+
+      - name: The forecast is fresh
+        if: steps.age.outputs.stale != 'true'
+        run: echo "forecast is ${{ steps.age.outputs.hours }}h old -- fresh"
+
+      - name: Raise the alarm
+        if: steps.age.outputs.stale == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HOURS: ${{ steps.age.outputs.hours }}
+          GENERATED: ${{ steps.age.outputs.generated }}
+          GEN_DAY: ${{ steps.age.outputs.generated_day }}
+        run: |
+          # One open alarm at a time. A build that stays broken for a week should
+          # not file seven issues.
+          if gh issue list --label stale-forecast --state open --json number | grep -q number; then
+            echo "an alarm is already open -- not stacking another"
+          else
+            gh label create stale-forecast --color b60205 \
+              --description "The daily forecast build has not produced fresh data" 2>/dev/null || true
+
+            {
+              echo "The newest forecast is from **${GEN_DAY}**, not today -- \`${HOURS}h\` old"
+              echo "(generated \`${GENERATED}\`). The site is serving a stale forecast."
+              echo
+              echo "The daily build should land a fresh one every morning at 5:17am ET."
+              echo "No build today means one of these. Check in order:"
+              echo
+              echo "1. **Did it run at all?** \`gh run list --workflow=forecast.yml --event=schedule\`"
+              echo "   An empty list means GitHub never fired the cron -- this is a known"
+              echo "   best-effort behaviour, not a bug in the pipeline. Dispatch it by hand"
+              echo "   (\`gh workflow run forecast.yml\`) and the forecast is current again."
+              echo "2. **Did it run and fail?** \`gh run list --workflow=forecast.yml\` -- read the log."
+              echo "3. **Did it run green but write nothing?** Then the upstream feed (GFS-Wave,"
+              echo "   NDBC, NHC) likely returned nothing and the build had no change to commit."
+              echo
+              echo "Close this issue once the forecast is fresh; the next run will reopen it if not."
+            } > body.md
+
+            gh issue create \
+              --title "No forecast today -- newest is from ${GEN_DAY}" \
+              --label stale-forecast \
+              --body-file body.md
+          fi
+
+          # Fail the job too, so it goes red in the Actions tab and triggers the
+          # normal failure email -- the issue alone is easy to miss.
+          echo "::error::no forecast today; newest is from ${GEN_DAY} (${HOURS}h old)"
+          exit 1

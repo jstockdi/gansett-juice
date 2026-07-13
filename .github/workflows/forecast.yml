@@ -1,17 +1,24 @@
 name: forecast
 
-# 5am Rhode Island time, daily.
+# 5:17am Rhode Island time, daily.
 #
 # GitHub cron is UTC-only and has NO DST awareness, so a single UTC time drifts
-# an hour twice a year. We fire at BOTH 09:00 UTC (= 5am EDT) and 10:00 UTC
-# (= 5am EST) and let the job itself decide which one is really 5am local.
+# an hour twice a year. We fire at BOTH 09:17 UTC (= 5:17am EDT) and 10:17 UTC
+# (= 5:17am EST) and let the job itself decide which one is really 5am local.
 # The other firing exits immediately. This is the same DST care the forecast
 # pipeline takes with tide data -- see docs/forecast-agent.md §4.
+#
+# :17 and not :00 -- scheduled runs are best-effort, and GitHub delays or DROPS
+# them under load. The top of the hour is the most contended minute on the
+# platform. We asked for 09:00 on 2026-07-13 and got nothing at all: no run, no
+# failure, no email. An odd minute mid-hour is materially less likely to be
+# starved. It is still best-effort, which is why staleness.yml watches the
+# output and shouts if a build goes missing.
 on:
   schedule:
-    - cron: '0 9 * * *'    # 5am EDT (summer)
-    - cron: '0 10 * * *'   # 5am EST (winter)
-  workflow_dispatch:       # and on demand
+    - cron: '17 9 * * *'    # 5:17am EDT (summer)
+    - cron: '17 10 * * *'   # 5:17am EST (winter)
+  workflow_dispatch:        # and on demand
 
 permissions:
   contents: write
