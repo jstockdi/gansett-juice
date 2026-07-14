@@ -1,23 +1,31 @@
 name: forecast
 
-# 5:17am Rhode Island time, daily.
+# Around 5am Rhode Island time, daily. Twice, deliberately.
 #
-# GitHub cron is UTC-only and has NO DST awareness, so a single UTC time drifts
-# an hour twice a year. We fire at BOTH 09:17 UTC (= 5:17am EDT) and 10:17 UTC
-# (= 5:17am EST) and let the job itself decide which one is really 5am local.
-# The other firing exits immediately. This is the same DST care the forecast
-# pipeline takes with tide data -- see docs/forecast-agent.md §4.
+# GitHub cron is UTC-only and has no DST awareness, so we fire at both 09:17 and
+# 10:17 UTC. One of those is 5:17am local and the other is an hour off, and we
+# do not care which: BOTH build. Rebuilding is safe -- forecast.json is
+# overwritten, the calibration log is keyed by date so the day's row is replaced
+# rather than duplicated (forecast.py log_calibration), and an unchanged tree
+# commits nothing. The second firing is simply a free retry an hour later.
 #
-# :17 and not :00 -- scheduled runs are best-effort, and GitHub delays or DROPS
-# them under load. The top of the hour is the most contended minute on the
-# platform. We asked for 09:00 on 2026-07-13 and got nothing at all: no run, no
-# failure, no email. An odd minute mid-hour is materially less likely to be
-# starved. It is still best-effort, which is why staleness.yml watches the
-# output and shouts if a build goes missing.
+# There used to be a gate here that skipped any run whose local hour was not
+# exactly 5. It made the pipeline fragile in the one way it could not afford:
+# scheduled runs are best-effort, GitHub delivers them LATE under load, and a
+# late run is not a wrong run. On 2026-07-14 both firings arrived 38 and 89
+# minutes behind, the gate read 6am and 7am, and skipped them both -- two green
+# runs, no forecast, a silent miss. Idempotence is a better defence than a
+# clock check.
+#
+# :17 and not :00 -- the top of the hour is the most contended minute on the
+# platform, and runs there get delayed or DROPPED. We asked for 09:00 on
+# 2026-07-13 and got nothing at all: no run, no failure, no email. It is still
+# best-effort, which is why staleness.yml watches the output and shouts if a
+# build goes missing.
 on:
   schedule:
-    - cron: '17 9 * * *'    # 5:17am EDT (summer)
-    - cron: '17 10 * * *'   # 5:17am EST (winter)
+    - cron: '17 9 * * *'    # 5:17am EDT / 4:17am EST
+    - cron: '17 10 * * *'   # 6:17am EDT / 5:17am EST
   workflow_dispatch:        # and on demand
 
 permissions:
@@ -34,20 +42,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Is it actually 5am in Rhode Island?
-        id: gate
-        run: |
-          HOUR=$(TZ=America/New_York date +%-H)
-          echo "local hour: $HOUR"
-          if [ "$HOUR" != "5" ] && [ "${{ github.event_name }}" != "workflow_dispatch" ]; then
-            echo "not 5am local (DST twin firing) — skipping"
-            echo "run=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "run=true" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Build forecast
-        if: steps.gate.outputs.run == 'true'
         run: python3 .claude/skills/surf-forecast/forecast.py
 
       # GitHub Pages serves the JS with max-age=600 and index.html has no version
@@ -55,7 +50,6 @@ jobs:
       # fix stays invisible. Stamp the src with the file's own content hash: it
       # changes only when the JS changes, and then it busts immediately.
       - name: Cache-bust forecast-panel.js
-        if: steps.gate.outputs.run == 'true'
         run: |
           test -s index.html || { echo "index.html is EMPTY -- refusing to build"; exit 1; }
           H=$(md5sum forecast-panel.js | cut -c1-8)
@@ -65,7 +59,6 @@ jobs:
           grep -o 'forecast-panel.js?v=[a-f0-9]*' index.html
 
       - name: Commit if changed
-        if: steps.gate.outputs.run == 'true'
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
