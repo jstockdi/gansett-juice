@@ -22,7 +22,7 @@ name: staleness
 # Worth adding if this ever misses one.
 on:
   schedule:
-    - cron: '43 13 * * *'   # ~9:43am ET, a few hours after the 5:17am build
+    - cron: '43 13 * * *'   # ~9:43am ET, a few hours after the 4:17am build
   workflow_dispatch:
 
 permissions:
@@ -92,7 +92,7 @@ jobs:
               echo "The newest forecast is from **${GEN_DAY}**, not today -- \`${HOURS}h\` old"
               echo "(generated \`${GENERATED}\`). The site is serving a stale forecast."
               echo
-              echo "The daily build should land a fresh one every morning at 5:17am ET."
+              echo "The daily build should land a fresh one every morning at 4:17am ET."
               echo "No build today means one of these. Check in order:"
               echo
               echo "1. **Did it run at all?** \`gh run list --workflow=forecast.yml --event=schedule\`"

@@ -1,9 +1,9 @@
 name: forecast
 
-# Around 5am Rhode Island time, daily. Twice, deliberately.
+# Around 4am Rhode Island time, daily. Twice, deliberately.
 #
-# GitHub cron is UTC-only and has no DST awareness, so we fire at both 09:17 and
-# 10:17 UTC. One of those is 5:17am local and the other is an hour off, and we
+# GitHub cron is UTC-only and has no DST awareness, so we fire at both 08:17 and
+# 09:17 UTC. One of those is 4:17am local and the other is an hour off, and we
 # do not care which: BOTH build. Rebuilding is safe -- forecast.json is
 # overwritten, the calibration log is keyed by date so the day's row is replaced
 # rather than duplicated (forecast.py log_calibration), and an unchanged tree
@@ -24,8 +24,8 @@ name: forecast
 # build goes missing.
 on:
   schedule:
+    - cron: '17 8 * * *'    # 4:17am EDT / 3:17am EST
     - cron: '17 9 * * *'    # 5:17am EDT / 4:17am EST
-    - cron: '17 10 * * *'   # 6:17am EDT / 5:17am EST
   workflow_dispatch:        # and on demand
 
 permissions:
