@@ -46,10 +46,46 @@ recomputes a score.
 ## Answering "what's the forecast?"
 
 1. Run the script.
-2. Read `summary.bestNow` / `bestToday` / `bestWeek`.
-3. Lead with the spot and the hour, then say **what's limiting** the others.
+2. **Check `summary.localLeads` first.** If it lists a spot, open with
+   `localKnowledge[spot].note` — an upcoming hour matched one of your logged sessions.
+   Your own eyes-on read beats an uncalibrated model for a spot you've surfed. Quote
+   the score only as the hedge it is.
+3. Read `summary.bestNow` / `bestToday` / `bestWeek`.
+4. Lead with the spot and the hour, then say **what's limiting** the others.
 
 Say **"Deep Hole, Thursday dawn — 4.7 ft at 11 s, wind offshore"**, not "Deep Hole scores 62."
+
+## Local knowledge — log a session, match it back
+
+The model has one ground truth it fetches (Warm Winds) and one it can't: **your own
+eyes**. Log a session and the next run measures how close each upcoming hour is to it,
+then leads the description with the closest match — per the honesty rules.
+
+```sh
+python3 .claude/skills/surf-forecast/log-session.py point-judith-south --rating fun --from 7 --to 9 --because good-size
+python3 .claude/skills/surf-forecast/log-session.py matunuck --rating fun --unverified --note "surfers out, looked good"
+```
+
+- Ratings are ordinal, a word not a number: `flat | marginal | fun | firing | blown-out`.
+- `--from/--to` are the hours you surfed; omit both to snapshot the day's best hour.
+- `--because` splits the rating into axes: `good-size | too-small | too-crossed | too-crowded | wrong-tide`.
+- `--unverified` marks a beach/webcam call (weaker evidence; the read-back says so).
+
+**How the match works.** Each surfed hour is stored (`data/sessions.jsonl`) with its raw
+conditions and the model's quality vector `q{size,wind,period,tide}` — the fingerprint.
+On the next run, `local_knowledge` compares every upcoming daylight hour's `q` to your
+fingerprints with a normalized weighted-L1 distance (`MATCH_W`, weighted the way the
+score gates: size and wind hard, period and tide soft). An hour **matches when that
+distance ≤ `MATCH_TAU` (0.15)** — every quality channel within ~0.15 of the session.
+The session's own rating supplies the sign: a match to a `fun`/`firing` session is a
+nudge to go (`lead: true`); a match to a `flat`/`blown-out` one warns the model may be
+over-calling it. **One logged session is enough — no negative example needed.**
+
+`localKnowledge[spot]` carries `matches` (closest first, with the internal `dist`) and
+the leading `note`. **The `dist` is internal — never quote it to the user; say "Friday
+dawn looks like your fun session," not "dist 0.03."** It changes what the tool *says*,
+never the score. Feeding sessions into `calibrate.py`'s bias fit is a separate step,
+not wired in.
 
 ## The one thing to know about this coast
 

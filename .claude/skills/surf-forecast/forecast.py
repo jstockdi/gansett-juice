@@ -879,6 +879,7 @@ def build(use_cache=True, window=None):
         # Say plainly where we agree with the human and where we merely differ in taste.
         report["groundTruth"]["agreement"] = compare_truth(truth, report)
     report["summary"]["rationale"] = rationale(report, report.get("groundTruth"))
+    local_knowledge(report, load_sessions())
 
     if window:
         # Loudly, in the artifact itself: this is not a forecast.
@@ -896,6 +897,135 @@ def build(use_cache=True, window=None):
 
 
 WORTH_IT = 35          # below this, we do not pretend there is a session to recommend
+
+# --- local knowledge: your own eyes-on sessions, matched back in (see log-session.py) ---
+SESSIONS = REPO / "data" / "sessions.jsonl"
+SESSION_WINDOW_DAYS = 45          # a summer session goes stale; a spot's character does not
+RATING_RANK = {"flat": 0, "marginal": 1, "fun": 2, "firing": 3, "blown-out": -1}
+LIKED = {"fun", "firing"}         # a match to one of these is a nudge TOWARD paddling out
+
+# The fingerprint is the model's own quality vector q{size,wind,period,tide}. Matching
+# there, not in raw swell/wind, is deliberate: direction and headland geometry are
+# already folded into q.size (score_step), degrees don't do Euclidean, and q is already
+# 0..1. Weights are read off the score's gate structure -- size and wind are the hard
+# multiplicative gates; period and tide only modulate -- so they are not free params.
+MATCH_W = {"size": 1.0, "wind": 1.0, "period": 0.4, "tide": 0.4}
+MATCH_TAU = 0.15                  # match if normalized weighted-L1 distance <= this,
+                                  # i.e. every quality channel within ~0.15 of the session
+
+
+def load_sessions(path=SESSIONS):
+    if not path.exists():
+        return []
+    return [json.loads(l) for l in path.read_text().splitlines() if l.strip()]
+
+
+def q_distance(qa, qb):
+    """Normalized weighted-L1 distance between two quality vectors, in [0,1]."""
+    if not qa or not qb:
+        return None
+    num = sum(MATCH_W[k] * abs(qa.get(k, 0) - qb.get(k, 0)) for k in MATCH_W)
+    return num / sum(MATCH_W.values())
+
+
+def local_knowledge(report, sessions):
+    """Match each upcoming spot-hour against your logged session fingerprints.
+
+    The READ-BACK half of log-session.py. It moves NO score -- the number stays the
+    model's honest, uncalibrated call. For each spot you've logged, it finds upcoming
+    hours whose quality vector lands within MATCH_TAU of a session, and leads the
+    description with the closest one. The session's OWN rating frames the match: near a
+    `fun` fingerprint is a nudge to go; near a `flat`/`blown-out` one is a warning the
+    model may be over-calling it. A single logged session is enough -- no negative
+    example required, because the rating, not a learned boundary, supplies the sign.
+    """
+    if not sessions:
+        return
+    today = report["generatedAt"][:10]
+    now = datetime.fromisoformat(report["generatedAt"])
+    names = {s["id"]: s["name"] for s in report["spots"]}
+    times, daylight, scores = report["times"], report["daylight"], report["scores"]
+
+    def within_window(d):
+        try:
+            gap = datetime.fromisoformat(today[:10]) - datetime.fromisoformat(d[:10])
+        except ValueError:
+            return False
+        return 0 <= gap.days <= SESSION_WINDOW_DAYS
+
+    # spot -> [fingerprint, ...] from every logged, in-window session hour that has a q
+    prints = {}
+    rows_by_spot = {}
+    for s in sessions:
+        sid = s.get("spot")
+        if sid not in names or not within_window(s.get("date", "")):
+            continue
+        rows_by_spot.setdefault(sid, []).append(s)
+        for h in s.get("hours", []):
+            if h.get("q"):
+                prints.setdefault(sid, []).append(
+                    {"date": s["date"], "rating": s["rating"],
+                     "because": s.get("because", []), "verified": s.get("verified", True),
+                     "at": h["at"], "q": h["q"]})
+
+    out = {}
+    for sid, rows in rows_by_spot.items():
+        name = names[sid]
+        fps = prints.get(sid, [])
+        own = {fp["at"] for fp in fps}          # don't let a session match its own logged hour
+        matches = []
+        if fps and sid in scores:
+            for j, t in enumerate(times):
+                if not daylight[j] or t in own or datetime.fromisoformat(t) < now:
+                    continue
+                qc = scores[sid][j].get("q")
+                if not qc:
+                    continue
+                best = min(((q_distance(qc, fp["q"]), fp) for fp in fps),
+                           key=lambda x: (x[0] is None, x[0]))
+                dist, fp = best
+                if dist is not None and dist <= MATCH_TAU:
+                    matches.append({"at": t, "dist": round(dist, 3), "toDate": fp["date"],
+                                    "rating": fp["rating"], "because": fp["because"],
+                                    "verified": fp["verified"]})
+        matches.sort(key=lambda m: m["dist"])
+        matches = matches[:6]
+
+        lead = bool(matches) and matches[0]["rating"] in LIKED
+        if matches:
+            m = matches[0]
+            when = datetime.fromisoformat(m["at"]).strftime("%a %m-%d %H:%M")
+            because = f" ({', '.join(m['because'])})" if m["because"] else ""
+            eyes = "" if m["verified"] else " [unverified]"
+            if m["rating"] in LIKED:
+                note = (f"{name} — {when} matches your {m['toDate']} "
+                        f"{m['rating']}{because}{eyes} session; conditions line up. Worth a look.")
+            else:
+                note = (f"{name} — {when} matches your {m['toDate']} "
+                        f"{m['rating']}{because}{eyes} session; the model may be over-calling it.")
+        else:
+            n = len(rows)
+            note = (f"{name} — {n} logged session{'s' if n != 1 else ''} in the last "
+                    f"{SESSION_WINDOW_DAYS}d, none matching anything upcoming.")
+
+        out[sid] = {
+            "lead": lead,
+            "note": note,
+            "matches": matches,
+            "sessions": [{"date": r["date"], "rating": r["rating"],
+                          "because": r.get("because", []), "verified": r.get("verified", True),
+                          "note": r.get("note", ""), "hours": r.get("hours", [])}
+                         for r in sorted(rows, key=lambda r: r.get("loggedAt") or r["date"])],
+        }
+
+    if out:
+        report["localKnowledge"] = out
+        # spots with an upcoming hour matching a session you LIKED -- the answer and UI
+        # open here, closest match first, before they quote a score.
+        report["summary"]["localLeads"] = [
+            sid for sid, v in sorted(out.items(),
+                                     key=lambda kv: kv[1]["matches"][0]["dist"] if kv[1]["matches"] else 9)
+            if v["lead"]]
 
 
 def rationale(report, gt):
