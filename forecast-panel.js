@@ -77,6 +77,18 @@ class SurfForecast extends HTMLElement {
           border-top: 1px solid #2b2b28; line-height: 1.5; }
         .trop.hot { color: #fab219; }
         .trop.hot b { color: #fff; }
+        /* local knowledge — your own logged sessions, matched forward. Leads the panel. */
+        .local { background: #16201a; border: 1px solid #2f5a41; border-radius: 12px;
+          padding: 16px; margin-bottom: 10px; }
+        .local .kicker { color: #7fbf9a; }
+        .local .lknote { font-size: 14px; color: #e7e6dc; line-height: 1.5; margin: 4px 0 0; }
+        .local .lknote b { color: #fff; font-weight: 600; }
+        .local .chips { margin-top: 11px; display: flex; flex-wrap: wrap; gap: 6px; }
+        .local .chip { font-size: 11.5px; color: #bfe3cd; background: #14261b;
+          border: 1px solid #2f5a41; border-radius: 999px; padding: 3px 9px; }
+        .local .chip b { color: #eaf6ee; font-weight: 600; }
+        .local .caveat { font-size: 11.5px; color: #7f8e83; margin-top: 10px; padding-top: 9px;
+          border-top: 1px solid #24352a; line-height: 1.5; }
         .credit { font-size: 12px; color: #86857c; margin-top: 9px; padding-top: 9px;
           border-top: 1px solid #2b2b28; line-height: 1.5; }
         .credit a { color: #c3c2b7; font-weight: 600; text-decoration: none;
@@ -259,7 +271,7 @@ class SurfForecast extends HTMLElement {
   render() {
     const d = this._d;
     this.shadowRoot.getElementById('wrap').innerHTML =
-      this._verdict() + this._spectrum() + this._now() +
+      this._local() + this._verdict() + this._spectrum() + this._now() +
       `<div class="ranked">${this._ranked()}</div>
        <div class="grid">${this._heatmap()}</div>` + this._foot();
 
@@ -269,6 +281,37 @@ class SurfForecast extends HTMLElement {
     if (ws) ws.data = d.spectrum;
 
     this._bind();
+  }
+
+  /* -------------------------------------------------- your local knowledge *
+   *  Leads the panel: when an upcoming hour matches a session you logged and  *
+   *  LIKED (summary.localLeads), your read comes first, the score second.     *
+   *  Never render the internal match distance -- ordinal, not cardinal, same  *
+   *  rule as everything else here. */
+  _local() {
+    const d = this._d, lk = d.localKnowledge, leads = (d.summary || {}).localLeads || [];
+    if (!lk || !leads.length) return '';
+
+    return leads.map(id => {
+      const v = lk[id];
+      if (!v) return '';
+      // upcoming matched hours, de-duped, soonest first, without the distance number
+      const seen = new Set(), chips = [];
+      for (const m of v.matches || []) {
+        const key = fcDay(m.at) + fcHour(m.at);
+        if (seen.has(key)) continue;
+        seen.add(key);
+        chips.push(`<span class="chip"><b>${fcDay(m.at)}</b> ${fcHour(m.at)}</span>`);
+        if (chips.length === 4) break;
+      }
+      return `<div class="local">
+        <div class="kicker">Your local knowledge</div>
+        <div class="lknote">${v.note}</div>
+        ${chips.length ? `<div class="chips">${chips.join('')}</div>` : ''}
+        <div class="caveat">Matched to conditions you logged, not the model's score —
+          which is unchanged. Your read leads; trust it over the number.</div>
+      </div>`;
+    }).join('');
   }
 
   /* ---------------------------------------------------------- the verdict */
