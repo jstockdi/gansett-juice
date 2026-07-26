@@ -69,7 +69,7 @@ TTL = {"marine": 3 * 3600, "nws": 3600, "tide": 24 * 3600, "ndbc": 20 * 60,
 # effective wave height, tuned against the Warm Winds human report by calibrate.py.
 # 1.0 = trust the wave model as-is. Changed only by a reviewed PR from the compounding
 # CI step -- never silently.
-SIZE_BIAS = 1.0
+SIZE_BIAS = 0.85
 
 KAPPA0, KAPPA1 = 6.0, 1.5        # diffraction: how far swell bends around a headland
 GLASS = 4.0                      # kt; below this, glassy regardless of direction
