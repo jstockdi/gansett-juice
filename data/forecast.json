@@ -1,6 +1,6 @@
 {
  "schema": "gansett-juice/forecast@1",
- "generatedAt": "2026-07-26T06:11:42.661598-04:00",
+ "generatedAt": "2026-07-26T06:53:00.361112-04:00",
  "timezone": "America/New_York",
  "grid": {
   "interval": "PT1H",
@@ -12,67 +12,67 @@
    "id": "gfswave016",
    "url": "https://marine-api.open-meteo.com/v1/marine?latitude=41.36&longitude=-71.49&hourly=swell_wave_height,swell_wave_direction,swell_wave_period,wind_wave_height,wind_wave_direction,wind_wave_period&timezone=America%2FNew_York&length_unit=imperial&models=ncep_gfswave016&forecast_days=6",
    "status": "ok",
-   "fetchedAt": "2026-07-26T06:11:40.649194-04:00"
+   "fetchedAt": "2026-07-26T06:52:57.804358-04:00"
   },
   {
    "id": "nws-BOX-66-56",
    "url": "https://api.weather.gov/gridpoints/BOX/66,56",
    "status": "ok",
-   "fetchedAt": "2026-07-26T06:11:40.954962-04:00"
+   "fetchedAt": "2026-07-26T06:52:58.173284-04:00"
   },
   {
    "id": "nws-BOX-65-53",
    "url": "https://api.weather.gov/gridpoints/BOX/65,53",
    "status": "ok",
-   "fetchedAt": "2026-07-26T06:11:41.170717-04:00"
+   "fetchedAt": "2026-07-26T06:52:58.420082-04:00"
   },
   {
    "id": "nws-BOX-63-54",
    "url": "https://api.weather.gov/gridpoints/BOX/63,54",
    "status": "ok",
-   "fetchedAt": "2026-07-26T06:11:41.382033-04:00"
+   "fetchedAt": "2026-07-26T06:52:58.735336-04:00"
   },
   {
    "id": "coops-hourly",
    "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&application=gansett-juice&begin_date=20260726&end_date=20260731&datum=MLLW&station=8455083&time_zone=lst_ldt&units=english&format=json&interval=h",
    "status": "ok",
-   "fetchedAt": "2026-07-26T06:11:41.726884-04:00"
+   "fetchedAt": "2026-07-26T06:52:59.097322-04:00"
   },
   {
    "id": "coops-hilo",
    "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&application=gansett-juice&begin_date=20260726&end_date=20260731&datum=MLLW&station=8455083&time_zone=lst_ldt&units=english&format=json&interval=hilo",
    "status": "ok",
-   "fetchedAt": "2026-07-26T06:11:41.811456-04:00"
+   "fetchedAt": "2026-07-26T06:52:59.326966-04:00"
   },
   {
    "id": "ndbc-44097",
    "url": "https://www.ndbc.noaa.gov/data/realtime2/44097.spec",
    "status": "ok",
-   "fetchedAt": "2026-07-26T06:11:42.189480-04:00"
+   "fetchedAt": "2026-07-26T06:52:59.579902-04:00"
   },
   {
    "id": "warmwinds",
    "url": "https://www.warmwinds.com/surf-report",
    "status": "ok",
-   "fetchedAt": "2026-07-26T06:11:42.344168-04:00"
+   "fetchedAt": "2026-07-26T06:52:59.980968-04:00"
   },
   {
    "id": "ndbc-spec-44097",
    "url": "https://www.ndbc.noaa.gov/data/realtime2/44097.data_spec",
    "status": "ok",
-   "fetchedAt": "2026-07-26T06:11:42.409268-04:00"
+   "fetchedAt": "2026-07-26T06:53:00.188836-04:00"
   },
   {
    "id": "nhc-storms",
    "url": "https://www.nhc.noaa.gov/CurrentStorms.json",
    "status": "ok",
-   "fetchedAt": "2026-07-26T06:11:42.627829-04:00"
+   "fetchedAt": "2026-07-26T06:53:00.322260-04:00"
   },
   {
    "id": "nhc-outlook",
    "url": "https://www.nhc.noaa.gov/xml/TWOAT.xml",
    "status": "ok",
-   "fetchedAt": "2026-07-26T06:11:42.653478-04:00"
+   "fetchedAt": "2026-07-26T06:53:00.354792-04:00"
   }
  ],
  "times": [
@@ -198,26 +198,26 @@
   "2026-07-31T06:00:00-04:00"
  ],
  "observed": {
-  "at": "2026-07-26T05:26:00-04:00",
+  "at": "2026-07-26T06:26:00-04:00",
   "buoy": "44097",
   "swell": {
    "h": 0.3,
-   "t": 11.8,
+   "t": 12.5,
    "d": 135,
    "e": 0.05
   },
   "windWave": {
    "h": 3.6,
-   "t": 7.7,
-   "d": 135
+   "t": 6.7,
+   "d": 112
   }
  },
  "spectrum": {
   "buoy": "44097",
-  "at": "2026-07-26T05:00:00-04:00",
-  "peakPeriod": 7.7,
-  "organization": 32,
-  "hsFt": 2.4,
+  "at": "2026-07-26T06:00:00-04:00",
+  "peakPeriod": 6.7,
+  "organization": 45,
+  "hsFt": 2.5,
   "bins": [
    [
     33.33,
@@ -253,7 +253,7 @@
    ],
    [
     14.29,
-    0.013
+    0.007
    ],
    [
     13.33,
@@ -261,151 +261,151 @@
    ],
    [
     12.5,
-    0.02
+    0.092
    ],
    [
     11.76,
-    0.047
+    0.046
    ],
    [
     11.11,
-    0.02
-   ],
-   [
-    10.53,
     0.013
    ],
    [
+    10.53,
+    0.026
+   ],
+   [
     9.9,
-    0.033
+    0.079
    ],
    [
     9.09,
-    0.1
+    0.144
    ],
    [
     8.33,
-    0.213
+    0.19
    ],
    [
     7.69,
-    0.665
+    0.4
    ],
    [
     7.14,
-    0.599
+    0.629
    ],
    [
     6.67,
-    0.612
+    0.655
    ],
    [
     6.25,
-    0.286
+    0.524
    ],
    [
     5.88,
-    0.326
+    0.439
    ],
    [
     5.56,
-    0.406
+    0.432
    ],
    [
     5.26,
-    0.352
+    0.465
    ],
    [
     5.0,
-    0.326
+    0.485
    ],
    [
     4.76,
-    0.16
+    0.275
    ],
    [
     4.55,
-    0.279
+    0.157
    ],
    [
     4.35,
-    0.219
+    0.183
    ],
    [
     4.17,
-    0.213
+    0.177
    ],
    [
     4.0,
-    0.133
+    0.131
    ],
    [
     3.85,
-    0.106
+    0.144
    ],
    [
     3.7,
-    0.113
+    0.21
    ],
    [
     3.57,
-    0.153
+    0.144
    ],
    [
     3.45,
-    0.153
+    0.164
    ],
    [
     3.33,
-    0.133
+    0.157
    ],
    [
     3.23,
-    0.16
+    0.151
    ],
    [
     3.12,
-    0.126
+    0.085
    ],
    [
     3.03,
-    0.053
+    0.092
    ],
    [
     2.94,
-    0.086
+    0.046
    ],
    [
     2.86,
-    0.073
+    0.072
    ],
    [
     2.78,
-    0.06
+    0.059
    ],
    [
     2.7,
-    0.06
+    0.052
    ],
    [
     2.63,
-    0.053
+    0.033
    ],
    [
     2.56,
-    0.053
+    0.033
    ],
    [
     2.5,
-    0.047
+    0.033
    ],
    [
     2.44,
-    0.047
+    0.039
    ],
    [
     2.38,
-    0.04
+    0.039
    ],
    [
     2.33,
@@ -413,19 +413,19 @@
    ],
    [
     2.27,
-    0.027
+    0.026
    ],
    [
     2.22,
-    0.027
+    0.026
    ],
    [
     2.17,
-    0.027
+    0.02
    ],
    [
     2.13,
-    0.013
+    0.02
    ],
    [
     2.08,
@@ -433,7 +433,7 @@
    ],
    [
     2.04,
-    0.013
+    0.02
    ],
    [
     2.0,
@@ -453,7 +453,7 @@
   "waveHeightFt": 3.3,
   "periodS": 7.0,
   "swellDir": 108.0,
-  "windMph": 6.0,
+  "windMph": 7.0,
   "windDir": 20.0,
   "waterTempF": 68.0,
   "outlook": [
