@@ -1,82 +1,81 @@
 {
  "schema": "gansett-juice/forecast@1",
- "generatedAt": "2026-08-12T05:30:58.134518-04:00",
+ "generatedAt": "2026-08-12T06:18:19.673652-04:00",
  "timezone": "America/New_York",
  "grid": {
   "interval": "PT1H",
   "steps": 120,
-  "start": "2026-08-12T06:00:00-04:00"
+  "start": "2026-08-12T07:00:00-04:00"
  },
  "sources": [
   {
    "id": "gfswave016",
    "url": "https://marine-api.open-meteo.com/v1/marine?latitude=41.36&longitude=-71.49&hourly=swell_wave_height,swell_wave_direction,swell_wave_period,wind_wave_height,wind_wave_direction,wind_wave_period&timezone=America%2FNew_York&length_unit=imperial&models=ncep_gfswave016&forecast_days=6",
    "status": "ok",
-   "fetchedAt": "2026-08-12T05:30:54.567944-04:00"
+   "fetchedAt": "2026-08-12T06:18:16.510286-04:00"
   },
   {
    "id": "nws-BOX-66-56",
    "url": "https://api.weather.gov/gridpoints/BOX/66,56",
    "status": "ok",
-   "fetchedAt": "2026-08-12T05:30:54.694695-04:00"
+   "fetchedAt": "2026-08-12T06:18:17.088925-04:00"
   },
   {
    "id": "nws-BOX-65-53",
    "url": "https://api.weather.gov/gridpoints/BOX/65,53",
    "status": "ok",
-   "fetchedAt": "2026-08-12T05:30:55.094930-04:00"
+   "fetchedAt": "2026-08-12T06:18:17.484951-04:00"
   },
   {
    "id": "nws-BOX-63-54",
    "url": "https://api.weather.gov/gridpoints/BOX/63,54",
    "status": "ok",
-   "fetchedAt": "2026-08-12T05:30:55.192422-04:00"
+   "fetchedAt": "2026-08-12T06:18:17.909586-04:00"
   },
   {
    "id": "coops-hourly",
    "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&application=gansett-juice&begin_date=20260812&end_date=20260817&datum=MLLW&station=8455083&time_zone=lst_ldt&units=english&format=json&interval=h",
    "status": "ok",
-   "fetchedAt": "2026-08-12T05:30:55.586885-04:00"
+   "fetchedAt": "2026-08-12T06:18:18.217922-04:00"
   },
   {
    "id": "coops-hilo",
    "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&application=gansett-juice&begin_date=20260812&end_date=20260817&datum=MLLW&station=8455083&time_zone=lst_ldt&units=english&format=json&interval=hilo",
    "status": "ok",
-   "fetchedAt": "2026-08-12T05:30:55.877197-04:00"
+   "fetchedAt": "2026-08-12T06:18:18.382465-04:00"
   },
   {
    "id": "ndbc-44097",
    "url": "https://www.ndbc.noaa.gov/data/realtime2/44097.spec",
    "status": "ok",
-   "fetchedAt": "2026-08-12T05:30:56.196305-04:00"
+   "fetchedAt": "2026-08-12T06:18:18.798436-04:00"
   },
   {
    "id": "warmwinds",
    "url": "https://www.warmwinds.com/surf-report",
    "status": "ok",
-   "fetchedAt": "2026-08-12T05:30:57.400604-04:00"
+   "fetchedAt": "2026-08-12T06:18:19.137118-04:00"
   },
   {
    "id": "ndbc-spec-44097",
    "url": "https://www.ndbc.noaa.gov/data/realtime2/44097.data_spec",
    "status": "ok",
-   "fetchedAt": "2026-08-12T05:30:57.802715-04:00"
+   "fetchedAt": "2026-08-12T06:18:19.343680-04:00"
   },
   {
    "id": "nhc-storms",
    "url": "https://www.nhc.noaa.gov/CurrentStorms.json",
    "status": "ok",
-   "fetchedAt": "2026-08-12T05:30:57.981212-04:00"
+   "fetchedAt": "2026-08-12T06:18:19.544558-04:00"
   },
   {
    "id": "nhc-outlook",
    "url": "https://www.nhc.noaa.gov/xml/TWOAT.xml",
    "status": "ok",
-   "fetchedAt": "2026-08-12T05:30:58.125741-04:00"
+   "fetchedAt": "2026-08-12T06:18:19.667563-04:00"
   }
  ],
  "times": [
-  "2026-08-12T06:00:00-04:00",
   "2026-08-12T07:00:00-04:00",
   "2026-08-12T08:00:00-04:00",
   "2026-08-12T09:00:00-04:00",
@@ -195,10 +194,11 @@
   "2026-08-17T02:00:00-04:00",
   "2026-08-17T03:00:00-04:00",
   "2026-08-17T04:00:00-04:00",
-  "2026-08-17T05:00:00-04:00"
+  "2026-08-17T05:00:00-04:00",
+  "2026-08-17T06:00:00-04:00"
  ],
  "observed": {
-  "at": "2026-08-12T04:56:00-04:00",
+  "at": "2026-08-12T05:56:00-04:00",
   "buoy": "44097",
   "swell": {
    "h": 0.3,
@@ -208,16 +208,16 @@
   },
   "windWave": {
    "h": 2.0,
-   "t": 5.6,
+   "t": 5.9,
    "d": 202
   }
  },
  "spectrum": {
   "buoy": "44097",
-  "at": "2026-08-12T05:00:00-04:00",
-  "peakPeriod": 5.6,
-  "organization": 66,
-  "hsFt": 1.4,
+  "at": "2026-08-12T06:00:00-04:00",
+  "peakPeriod": 5.9,
+  "organization": 53,
+  "hsFt": 1.3,
   "bins": [
    [
     33.33,
@@ -245,35 +245,35 @@
    ],
    [
     16.67,
-    0.0
+    0.005
    ],
    [
     15.38,
-    0.014
-   ],
-   [
-    14.29,
-    0.028
-   ],
-   [
-    13.33,
-    0.085
-   ],
-   [
-    12.5,
-    0.019
-   ],
-   [
-    11.76,
-    0.019
-   ],
-   [
-    11.11,
     0.009
    ],
    [
+    14.29,
+    0.039
+   ],
+   [
+    13.33,
+    0.064
+   ],
+   [
+    12.5,
+    0.032
+   ],
+   [
+    11.76,
+    0.014
+   ],
+   [
+    11.11,
+    0.012
+   ],
+   [
     10.53,
-    0.005
+    0.007
    ],
    [
     9.9,
@@ -281,75 +281,75 @@
    ],
    [
     9.09,
-    0.019
+    0.012
    ],
    [
     8.33,
-    0.028
+    0.023
    ],
    [
     7.69,
-    0.019
+    0.025
    ],
    [
     7.14,
-    0.047
+    0.037
    ],
    [
     6.67,
-    0.089
+    0.055
    ],
    [
     6.25,
-    0.174
+    0.147
    ],
    [
     5.88,
-    0.292
+    0.23
    ],
    [
     5.56,
-    0.471
+    0.218
    ],
    [
     5.26,
-    0.235
+    0.223
    ],
    [
     5.0,
-    0.207
+    0.182
    ],
    [
     4.76,
-    0.127
+    0.092
    ],
    [
     4.55,
-    0.061
+    0.092
    ],
    [
     4.35,
-    0.047
+    0.069
    ],
    [
     4.17,
-    0.042
+    0.069
    ],
    [
     4.0,
-    0.028
+    0.044
    ],
    [
     3.85,
-    0.042
+    0.048
    ],
    [
     3.7,
-    0.042
+    0.048
    ],
    [
     3.57,
-    0.038
+    0.035
    ],
    [
     3.45,
@@ -357,27 +357,27 @@
    ],
    [
     3.33,
-    0.033
+    0.028
    ],
    [
     3.23,
-    0.019
+    0.014
    ],
    [
     3.12,
-    0.024
+    0.021
    ],
    [
     3.03,
-    0.019
+    0.018
    ],
    [
     2.94,
-    0.019
+    0.016
    ],
    [
     2.86,
-    0.014
+    0.012
    ],
    [
     2.78,
@@ -389,23 +389,23 @@
    ],
    [
     2.63,
-    0.009
+    0.012
    ],
    [
     2.56,
-    0.005
+    0.014
    ],
    [
     2.5,
-    0.009
+    0.005
    ],
    [
     2.44,
-    0.009
+    0.005
    ],
    [
     2.38,
-    0.005
+    0.007
    ],
    [
     2.33,
@@ -417,27 +417,27 @@
    ],
    [
     2.22,
-    0.005
+    0.007
    ],
    [
     2.17,
-    0.0
+    0.005
    ],
    [
     2.13,
-    0.0
+    0.002
    ],
    [
     2.08,
-    0.0
+    0.005
    ],
    [
     2.04,
-    0.0
+    0.002
    ],
    [
     2.0,
-    0.0
+    0.005
    ]
   ]
  },
@@ -448,12 +448,6 @@
  "groundTruth": null,
  "conditions": {
   "swell": [
-   {
-    "h": 0.66,
-    "t": 5.6,
-    "d": 170,
-    "e": 0.11
-   },
    {
     "h": 0.59,
     "t": 5.6,
@@ -1167,15 +1161,15 @@
     "t": 7.0,
     "d": 170,
     "e": 2.11
+   },
+   {
+    "h": 2.43,
+    "t": 7.0,
+    "d": 168,
+    "e": 1.9
    }
   ],
   "windWave": [
-   {
-    "h": 0.0,
-    "t": 0.0,
-    "d": 0,
-    "e": 0.0
-   },
    {
     "h": 0.0,
     "t": 0.0,
@@ -1889,15 +1883,16 @@
     "t": 0.0,
     "d": 0,
     "e": 0.0
+   },
+   {
+    "h": 0.13,
+    "t": 0.5,
+    "d": 338,
+    "e": 0.0
    }
   ],
   "wind": {
    "narragansett": [
-    {
-     "spd": 5.0,
-     "dir": 340,
-     "gust": 6.0
-    },
     {
      "spd": 5.0,
      "dir": 350,
@@ -2492,14 +2487,14 @@
      "spd": 12.0,
      "dir": 210,
      "gust": 15.0
+    },
+    {
+     "spd": 12.0,
+     "dir": 210,
+     "gust": 15.0
     }
    ],
    "point-judith": [
-    {
-     "spd": 5.0,
-     "dir": 330,
-     "gust": 7.0
-    },
     {
      "spd": 5.0,
      "dir": 340,
@@ -3094,14 +3089,14 @@
      "spd": 13.0,
      "dir": 210,
      "gust": 17.0
+    },
+    {
+     "spd": 13.0,
+     "dir": 210,
+     "gust": 17.0
     }
    ],
    "matunuck": [
-    {
-     "spd": 4.0,
-     "dir": 320,
-     "gust": 6.0
-    },
     {
      "spd": 4.0,
      "dir": 340,
@@ -3696,14 +3691,15 @@
      "spd": 10.0,
      "dir": 220,
      "gust": 13.0
+    },
+    {
+     "spd": 10.0,
+     "dir": 210,
+     "gust": 13.0
     }
    ]
   },
   "tide": [
-   {
-    "ft": 2.44,
-    "stage": "rising"
-   },
    {
     "ft": 3.28,
     "stage": "rising"
@@ -4179,6 +4175,10 @@
    {
     "ft": 0.17,
     "stage": "falling"
+   },
+   {
+    "ft": 0.17,
+    "stage": "rising"
    }
   ]
  },
@@ -4290,21 +4290,6 @@
  ],
  "scores": {
   "narragansett-town-beach": [
-   {
-    "s": 0,
-    "status": "ok",
-    "limiting": "size",
-    "hEff": 0.66,
-    "tEff": 5.6,
-    "dEff": 170,
-    "eEff": 0.11,
-    "q": {
-     "size": 0.0,
-     "wind": 0.96,
-     "period": 0.25,
-     "tide": 0.96
-    }
-   },
    {
     "s": 0,
     "status": "ok",
@@ -6089,24 +6074,24 @@
      "period": 0.25,
      "tide": 0.74
     }
+   },
+   {
+    "s": 27,
+    "status": "ok",
+    "limiting": "period",
+    "hEff": 2.43,
+    "tEff": 7.0,
+    "dEff": 168,
+    "eEff": 1.92,
+    "q": {
+     "size": 0.93,
+     "wind": 0.51,
+     "period": 0.25,
+     "tide": 0.74
+    }
    }
   ],
   "point-judith-east": [
-   {
-    "s": 0,
-    "status": "ok",
-    "limiting": "size",
-    "hEff": 0.05,
-    "tEff": 5.6,
-    "dEff": 170,
-    "eEff": 0.0,
-    "q": {
-     "size": 0.0,
-     "wind": 0.96,
-     "period": 0.25,
-     "tide": 1.0
-    }
-   },
    {
     "s": 0,
     "status": "ok",
@@ -7891,24 +7876,24 @@
      "period": 0.4,
      "tide": 0.57
     }
-   }
-  ],
-  "point-judith-south": [
+   },
    {
     "s": 0,
     "status": "ok",
     "limiting": "size",
-    "hEff": 0.66,
-    "tEff": 5.6,
-    "dEff": 170,
-    "eEff": 0.11,
+    "hEff": 0.41,
+    "tEff": 7.0,
+    "dEff": 168,
+    "eEff": 0.05,
     "q": {
      "size": 0.0,
-     "wind": 0.9,
-     "period": 0.25,
-     "tide": 1.0
+     "wind": 0.65,
+     "period": 0.4,
+     "tide": 0.67
     }
-   },
+   }
+  ],
+  "point-judith-south": [
    {
     "s": 0,
     "status": "ok",
@@ -9693,24 +9678,24 @@
      "period": 0.4,
      "tide": 0.57
     }
-   }
-  ],
-  "k38": [
+   },
    {
     "s": 0,
     "status": "ok",
     "limiting": "size",
-    "hEff": 0.19,
-    "tEff": 5.6,
-    "dEff": 170,
-    "eEff": 0.01,
+    "hEff": 2.43,
+    "tEff": 7.0,
+    "dEff": 168,
+    "eEff": 1.92,
     "q": {
      "size": 0.0,
-     "wind": 0.9,
-     "period": 0.25,
-     "tide": 0.57
+     "wind": 0.0,
+     "period": 0.4,
+     "tide": 0.67
     }
-   },
+   }
+  ],
+  "k38": [
    {
     "s": 0,
     "status": "ok",
@@ -11495,24 +11480,24 @@
      "period": 0.4,
      "tide": 0.93
     }
-   }
-  ],
-  "matunuck": [
+   },
    {
     "s": 0,
     "status": "ok",
     "limiting": "size",
-    "hEff": 0.66,
-    "tEff": 5.6,
-    "dEff": 170,
-    "eEff": 0.11,
+    "hEff": 0.51,
+    "tEff": 7.0,
+    "dEff": 168,
+    "eEff": 0.09,
     "q": {
      "size": 0.0,
-     "wind": 1.0,
-     "period": 0.25,
-     "tide": 0.4
+     "wind": 0.0,
+     "period": 0.4,
+     "tide": 0.93
     }
-   },
+   }
+  ],
+  "matunuck": [
    {
     "s": 0,
     "status": "ok",
@@ -13298,6 +13283,21 @@
      "period": 0.25,
      "tide": 0.9
     }
+   },
+   {
+    "s": 6,
+    "status": "ok",
+    "limiting": "wind",
+    "hEff": 2.43,
+    "tEff": 7.0,
+    "dEff": 168,
+    "eEff": 1.92,
+    "q": {
+     "size": 0.72,
+     "wind": 0.14,
+     "period": 0.25,
+     "tide": 0.9
+    }
    }
   ]
  },
@@ -13315,7 +13315,6 @@
   true,
   true,
   true,
-  true,
   false,
   false,
   false,
@@ -13421,7 +13420,8 @@
   false,
   false,
   false,
-  false
+  false,
+  true
  ],
  "sun": {
   "2026-08-12": {
@@ -13481,49 +13481,49 @@
    {
     "spot": "narragansett-town-beach",
     "s": 0,
-    "at": "2026-08-12T06:00:00-04:00"
+    "at": "2026-08-12T07:00:00-04:00"
    },
    {
     "spot": "point-judith-east",
     "s": 0,
-    "at": "2026-08-12T06:00:00-04:00"
+    "at": "2026-08-12T07:00:00-04:00"
    },
    {
     "spot": "point-judith-south",
     "s": 0,
-    "at": "2026-08-12T06:00:00-04:00"
+    "at": "2026-08-12T07:00:00-04:00"
    },
    {
     "spot": "k38",
     "s": 0,
-    "at": "2026-08-12T06:00:00-04:00"
+    "at": "2026-08-12T07:00:00-04:00"
    }
   ],
   "bestWeek": [
+   {
+    "spot": "narragansett-town-beach",
+    "s": 27,
+    "at": "2026-08-17T06:00:00-04:00"
+   },
    {
     "spot": "matunuck",
     "s": 9,
     "at": "2026-08-16T18:00:00-04:00"
    },
    {
-    "spot": "narragansett-town-beach",
-    "s": 0,
-    "at": "2026-08-12T06:00:00-04:00"
-   },
-   {
     "spot": "point-judith-east",
     "s": 0,
-    "at": "2026-08-12T06:00:00-04:00"
+    "at": "2026-08-12T07:00:00-04:00"
    },
    {
     "spot": "point-judith-south",
     "s": 0,
-    "at": "2026-08-12T06:00:00-04:00"
+    "at": "2026-08-12T07:00:00-04:00"
    },
    {
     "spot": "k38",
     "s": 0,
-    "at": "2026-08-12T06:00:00-04:00"
+    "at": "2026-08-12T07:00:00-04:00"
    }
   ],
   "worthItThreshold": 35,
@@ -13585,8 +13585,8 @@
      "verified": true
     },
     {
-     "at": "2026-08-12T06:00:00-04:00",
-     "dist": 0.071,
+     "at": "2026-08-12T07:00:00-04:00",
+     "dist": 0.072,
      "toDate": "2026-07-20",
      "rating": "fun",
      "because": [
@@ -13595,8 +13595,8 @@
      "verified": true
     },
     {
-     "at": "2026-08-12T07:00:00-04:00",
-     "dist": 0.072,
+     "at": "2026-08-14T07:00:00-04:00",
+     "dist": 0.075,
      "toDate": "2026-07-20",
      "rating": "fun",
      "because": [
