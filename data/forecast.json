@@ -1,6 +1,6 @@
 {
  "schema": "gansett-juice/forecast@1",
- "generatedAt": "2026-09-13T09:17:31.332493-04:00",
+ "generatedAt": "2026-09-13T09:47:03.519411-04:00",
  "timezone": "America/New_York",
  "grid": {
   "interval": "PT1H",
@@ -12,67 +12,67 @@
    "id": "gfswave016",
    "url": "https://marine-api.open-meteo.com/v1/marine?latitude=41.36&longitude=-71.49&hourly=swell_wave_height,swell_wave_direction,swell_wave_period,wind_wave_height,wind_wave_direction,wind_wave_period&timezone=America%2FNew_York&length_unit=imperial&models=ncep_gfswave016&forecast_days=6",
    "status": "ok",
-   "fetchedAt": "2026-09-13T09:17:28.643834-04:00"
+   "fetchedAt": "2026-09-13T09:47:01.162426-04:00"
   },
   {
    "id": "nws-BOX-66-56",
    "url": "https://api.weather.gov/gridpoints/BOX/66,56",
    "status": "ok",
-   "fetchedAt": "2026-09-13T09:17:28.981740-04:00"
+   "fetchedAt": "2026-09-13T09:47:01.331653-04:00"
   },
   {
    "id": "nws-BOX-65-53",
    "url": "https://api.weather.gov/gridpoints/BOX/65,53",
    "status": "ok",
-   "fetchedAt": "2026-09-13T09:17:29.321914-04:00"
+   "fetchedAt": "2026-09-13T09:47:01.516812-04:00"
   },
   {
    "id": "nws-BOX-63-54",
    "url": "https://api.weather.gov/gridpoints/BOX/63,54",
    "status": "ok",
-   "fetchedAt": "2026-09-13T09:17:29.702911-04:00"
+   "fetchedAt": "2026-09-13T09:47:01.710327-04:00"
   },
   {
    "id": "coops-hourly",
    "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&application=gansett-juice&begin_date=20260913&end_date=20260918&datum=MLLW&station=8455083&time_zone=lst_ldt&units=english&format=json&interval=h",
    "status": "ok",
-   "fetchedAt": "2026-09-13T09:17:29.864327-04:00"
+   "fetchedAt": "2026-09-13T09:47:02.026245-04:00"
   },
   {
    "id": "coops-hilo",
    "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&application=gansett-juice&begin_date=20260913&end_date=20260918&datum=MLLW&station=8455083&time_zone=lst_ldt&units=english&format=json&interval=hilo",
    "status": "ok",
-   "fetchedAt": "2026-09-13T09:17:30.040471-04:00"
+   "fetchedAt": "2026-09-13T09:47:02.184800-04:00"
   },
   {
    "id": "ndbc-44097",
    "url": "https://www.ndbc.noaa.gov/data/realtime2/44097.spec",
    "status": "ok",
-   "fetchedAt": "2026-09-13T09:17:30.342572-04:00"
+   "fetchedAt": "2026-09-13T09:47:02.435781-04:00"
   },
   {
    "id": "warmwinds",
    "url": "https://www.warmwinds.com/surf-report",
    "status": "ok",
-   "fetchedAt": "2026-09-13T09:17:30.797200-04:00"
+   "fetchedAt": "2026-09-13T09:47:03.103872-04:00"
   },
   {
    "id": "ndbc-spec-44097",
    "url": "https://www.ndbc.noaa.gov/data/realtime2/44097.data_spec",
    "status": "ok",
-   "fetchedAt": "2026-09-13T09:17:31.030764-04:00"
+   "fetchedAt": "2026-09-13T09:47:03.291449-04:00"
   },
   {
    "id": "nhc-storms",
    "url": "https://www.nhc.noaa.gov/CurrentStorms.json",
    "status": "ok",
-   "fetchedAt": "2026-09-13T09:17:31.241296-04:00"
+   "fetchedAt": "2026-09-13T09:47:03.456840-04:00"
   },
   {
    "id": "nhc-outlook",
    "url": "https://www.nhc.noaa.gov/xml/TWOAT.xml",
    "status": "ok",
-   "fetchedAt": "2026-09-13T09:17:31.323685-04:00"
+   "fetchedAt": "2026-09-13T09:47:03.510800-04:00"
   }
  ],
  "times": [
@@ -215,7 +215,7 @@
  "spectrum": {
   "buoy": "44097",
   "at": "2026-09-13T09:00:00-04:00",
-  "peakPeriod": 4.8,
+  "peakPeriod": 4.9,
   "organization": 54,
   "hsFt": 2.4,
   "bins": [
@@ -249,75 +249,75 @@
    ],
    [
     15.38,
-    0.004
+    0.0
    ],
    [
     14.29,
-    0.004
+    0.005
    ],
    [
     13.33,
-    0.004
+    0.005
    ],
    [
     12.5,
-    0.012
+    0.005
    ],
    [
     11.76,
-    0.027
+    0.019
    ],
    [
     11.11,
-    0.035
+    0.028
    ],
    [
     10.53,
-    0.051
+    0.056
    ],
    [
     10.0,
-    0.109
+    0.089
    ],
    [
     9.52,
-    0.109
+    0.079
    ],
    [
     9.09,
-    0.07
+    0.089
    ],
    [
     8.7,
-    0.058
-   ],
-   [
-    8.33,
-    0.058
-   ],
-   [
-    8.0,
-    0.074
-   ],
-   [
-    7.69,
     0.07
    ],
    [
+    8.33,
+    0.047
+   ],
+   [
+    8.0,
+    0.056
+   ],
+   [
+    7.69,
+    0.061
+   ],
+   [
     7.41,
-    0.055
+    0.056
    ],
    [
     7.14,
-    0.058
+    0.051
    ],
    [
     6.9,
-    0.039
+    0.033
    ],
    [
     6.67,
-    0.043
+    0.037
    ],
    [
     6.45,
@@ -325,179 +325,179 @@
    ],
    [
     6.25,
-    0.039
+    0.061
    ],
    [
     6.06,
-    0.043
+    0.061
    ],
    [
     5.88,
-    0.058
+    0.042
    ],
    [
     5.71,
-    0.058
+    0.061
    ],
    [
     5.56,
-    0.066
+    0.056
    ],
    [
     5.41,
-    0.094
+    0.07
    ],
    [
     5.26,
-    0.094
+    0.103
    ],
    [
     5.13,
-    0.168
+    0.196
    ],
    [
     5.0,
-    0.238
+    0.28
    ],
    [
     4.88,
-    0.339
+    0.466
    ],
    [
     4.76,
-    0.39
+    0.391
    ],
    [
     4.65,
-    0.374
+    0.35
    ],
    [
     4.55,
-    0.378
+    0.34
    ],
    [
     4.44,
-    0.316
+    0.35
    ],
    [
     4.35,
-    0.238
+    0.256
    ],
    [
     4.26,
-    0.25
+    0.21
    ],
    [
     4.17,
-    0.207
+    0.2
    ],
    [
     4.08,
-    0.176
+    0.196
    ],
    [
     3.98,
-    0.179
+    0.14
    ],
    [
     3.85,
-    0.234
+    0.149
    ],
    [
     3.7,
-    0.144
+    0.168
    ],
    [
     3.57,
-    0.109
+    0.2
    ],
    [
     3.45,
-    0.187
+    0.135
    ],
    [
     3.33,
-    0.09
+    0.233
    ],
    [
     3.23,
-    0.136
+    0.103
    ],
    [
     3.12,
-    0.152
+    0.117
    ],
    [
     3.03,
-    0.136
+    0.154
    ],
    [
     2.94,
-    0.125
+    0.079
    ],
    [
     2.86,
-    0.051
+    0.079
    ],
    [
     2.78,
-    0.062
+    0.065
    ],
    [
     2.7,
-    0.058
+    0.075
    ],
    [
     2.63,
-    0.074
+    0.061
    ],
    [
     2.56,
-    0.074
-   ],
-   [
-    2.5,
-    0.058
-   ],
-   [
-    2.44,
-    0.039
-   ],
-   [
-    2.38,
-    0.039
-   ],
-   [
-    2.33,
-    0.043
-   ],
-   [
-    2.27,
     0.047
    ],
    [
-    2.22,
+    2.5,
+    0.047
+   ],
+   [
+    2.44,
+    0.042
+   ],
+   [
+    2.38,
     0.051
    ],
    [
+    2.33,
+    0.037
+   ],
+   [
+    2.27,
+    0.051
+   ],
+   [
+    2.22,
+    0.042
+   ],
+   [
     2.17,
-    0.023
+    0.037
    ],
    [
     2.13,
-    0.035
+    0.033
    ],
    [
     2.08,
-    0.023
+    0.033
    ],
    [
     2.04,
-    0.027
+    0.023
    ],
    [
     2.0,
-    0.035
+    0.009
    ]
   ]
  },
