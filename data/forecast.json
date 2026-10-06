@@ -1,6 +1,6 @@
 {
  "schema": "gansett-juice/forecast@1",
- "generatedAt": "2026-10-06T11:08:19.135350-04:00",
+ "generatedAt": "2026-10-06T11:54:52.344864-04:00",
  "timezone": "America/New_York",
  "grid": {
   "interval": "PT1H",
@@ -12,67 +12,67 @@
    "id": "gfswave016",
    "url": "https://marine-api.open-meteo.com/v1/marine?latitude=41.36&longitude=-71.49&hourly=swell_wave_height,swell_wave_direction,swell_wave_period,wind_wave_height,wind_wave_direction,wind_wave_period&timezone=America%2FNew_York&length_unit=imperial&models=ncep_gfswave016&forecast_days=6",
    "status": "ok",
-   "fetchedAt": "2026-10-06T11:08:14.097819-04:00"
+   "fetchedAt": "2026-10-06T11:54:48.342096-04:00"
   },
   {
    "id": "nws-BOX-66-56",
    "url": "https://api.weather.gov/gridpoints/BOX/66,56",
    "status": "ok",
-   "fetchedAt": "2026-10-06T11:08:14.398253-04:00"
+   "fetchedAt": "2026-10-06T11:54:49.069086-04:00"
   },
   {
    "id": "nws-BOX-65-53",
    "url": "https://api.weather.gov/gridpoints/BOX/65,53",
    "status": "ok",
-   "fetchedAt": "2026-10-06T11:08:14.590997-04:00"
+   "fetchedAt": "2026-10-06T11:54:49.610669-04:00"
   },
   {
    "id": "nws-BOX-63-54",
    "url": "https://api.weather.gov/gridpoints/BOX/63,54",
    "status": "ok",
-   "fetchedAt": "2026-10-06T11:08:14.793880-04:00"
+   "fetchedAt": "2026-10-06T11:54:50.044745-04:00"
   },
   {
    "id": "coops-hourly",
    "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&application=gansett-juice&begin_date=20261006&end_date=20261011&datum=MLLW&station=8455083&time_zone=lst_ldt&units=english&format=json&interval=h",
    "status": "ok",
-   "fetchedAt": "2026-10-06T11:08:16.781139-04:00"
+   "fetchedAt": "2026-10-06T11:54:50.452349-04:00"
   },
   {
    "id": "coops-hilo",
    "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&application=gansett-juice&begin_date=20261006&end_date=20261011&datum=MLLW&station=8455083&time_zone=lst_ldt&units=english&format=json&interval=hilo",
    "status": "ok",
-   "fetchedAt": "2026-10-06T11:08:17.002782-04:00"
+   "fetchedAt": "2026-10-06T11:54:50.738807-04:00"
   },
   {
    "id": "ndbc-44097",
    "url": "https://www.ndbc.noaa.gov/data/realtime2/44097.spec",
    "status": "ok",
-   "fetchedAt": "2026-10-06T11:08:17.295865-04:00"
+   "fetchedAt": "2026-10-06T11:54:51.207496-04:00"
   },
   {
    "id": "warmwinds",
    "url": "https://www.warmwinds.com/surf-report",
    "status": "ok",
-   "fetchedAt": "2026-10-06T11:08:18.352440-04:00"
+   "fetchedAt": "2026-10-06T11:54:51.919703-04:00"
   },
   {
    "id": "ndbc-spec-44097",
    "url": "https://www.ndbc.noaa.gov/data/realtime2/44097.data_spec",
    "status": "ok",
-   "fetchedAt": "2026-10-06T11:08:18.856805-04:00"
+   "fetchedAt": "2026-10-06T11:54:52.159103-04:00"
   },
   {
    "id": "nhc-storms",
    "url": "https://www.nhc.noaa.gov/CurrentStorms.json",
    "status": "ok",
-   "fetchedAt": "2026-10-06T11:08:19.001157-04:00"
+   "fetchedAt": "2026-10-06T11:54:52.303057-04:00"
   },
   {
    "id": "nhc-outlook",
    "url": "https://www.nhc.noaa.gov/xml/TWOAT.xml",
    "status": "ok",
-   "fetchedAt": "2026-10-06T11:08:19.125959-04:00"
+   "fetchedAt": "2026-10-06T11:54:52.336662-04:00"
   }
  ],
  "times": [
@@ -198,26 +198,26 @@
   "2026-10-11T11:00:00-04:00"
  ],
  "observed": {
-  "at": "2026-10-06T10:30:00-04:00",
+  "at": "2026-10-06T11:30:00-04:00",
   "buoy": "44097",
   "swell": {
    "h": 0.3,
-   "t": 11.1,
+   "t": 10.0,
    "d": 135,
-   "e": 0.05
+   "e": 0.04
   },
   "windWave": {
-   "h": 3.9,
-   "t": 5.3,
+   "h": 3.6,
+   "t": 4.9,
    "d": 270
   }
  },
  "spectrum": {
   "buoy": "44097",
-  "at": "2026-10-06T10:00:00-04:00",
-  "peakPeriod": 5.3,
-  "organization": 68,
-  "hsFt": 3.5,
+  "at": "2026-10-06T11:00:00-04:00",
+  "peakPeriod": 4.9,
+  "organization": 74,
+  "hsFt": 3.2,
   "bins": [
    [
     33.33,
@@ -249,207 +249,207 @@
    ],
    [
     15.38,
-    0.0
+    0.008
    ],
    [
     14.29,
-    0.012
+    0.016
    ],
    [
     13.33,
-    0.012
+    0.016
    ],
    [
     12.5,
-    0.012
+    0.016
    ],
    [
     11.76,
-    0.012
+    0.008
    ],
    [
     11.11,
-    0.012
+    0.016
    ],
    [
     10.53,
-    0.012
+    0.016
    ],
    [
     10.0,
-    0.012
-   ],
-   [
-    9.52,
-    0.047
-   ],
-   [
-    9.09,
-    0.094
-   ],
-   [
-    8.7,
-    0.106
-   ],
-   [
-    8.33,
-    0.059
-   ],
-   [
-    8.0,
-    0.035
-   ],
-   [
-    7.69,
     0.024
    ],
    [
+    9.52,
+    0.032
+   ],
+   [
+    9.09,
+    0.039
+   ],
+   [
+    8.7,
+    0.063
+   ],
+   [
+    8.33,
+    0.055
+   ],
+   [
+    8.0,
+    0.039
+   ],
+   [
+    7.69,
+    0.039
+   ],
+   [
     7.41,
-    0.047
+    0.055
    ],
    [
     7.14,
-    0.059
+    0.032
    ],
    [
     6.9,
-    0.083
+    0.039
    ],
    [
     6.67,
-    0.142
+    0.055
    ],
    [
     6.45,
-    0.189
+    0.079
    ],
    [
     6.25,
-    0.319
+    0.142
    ],
    [
     6.06,
-    0.472
+    0.37
    ],
    [
     5.88,
-    0.555
+    0.638
    ],
    [
     5.71,
-    0.838
+    0.725
    ],
    [
     5.56,
-    1.168
+    0.638
    ],
    [
     5.41,
-    1.074
+    0.528
    ],
    [
     5.26,
-    1.18
+    0.772
    ],
    [
     5.13,
-    0.85
+    0.67
    ],
    [
     5.0,
-    0.696
+    0.646
    ],
    [
     4.88,
-    0.425
+    0.788
    ],
    [
     4.76,
-    0.484
+    0.607
    ],
    [
     4.65,
-    0.425
+    0.402
    ],
    [
     4.55,
-    0.543
+    0.323
    ],
    [
     4.44,
-    0.743
+    0.362
    ],
    [
     4.35,
-    0.519
+    0.402
    ],
    [
     4.26,
-    0.26
+    0.426
    ],
    [
     4.17,
-    0.295
+    0.323
    ],
    [
     4.08,
-    0.366
+    0.165
    ],
    [
     3.98,
-    0.33
+    0.213
    ],
    [
     3.85,
-    0.201
+    0.221
    ],
    [
     3.7,
-    0.165
+    0.244
    ],
    [
     3.57,
-    0.224
+    0.189
    ],
    [
     3.45,
-    0.177
+    0.252
    ],
    [
     3.33,
-    0.165
+    0.197
    ],
    [
     3.23,
-    0.13
+    0.102
    ],
    [
     3.12,
-    0.118
+    0.087
    ],
    [
     3.03,
-    0.083
+    0.126
    ],
    [
     2.94,
-    0.118
+    0.063
    ],
    [
     2.86,
-    0.083
+    0.15
    ],
    [
     2.78,
-    0.071
+    0.063
    ],
    [
     2.7,
-    0.071
+    0.079
    ],
    [
     2.63,
-    0.094
+    0.039
    ],
    [
     2.56,
@@ -457,35 +457,35 @@
    ],
    [
     2.5,
-    0.035
+    0.032
    ],
    [
     2.44,
-    0.059
+    0.032
    ],
    [
     2.38,
-    0.035
-   ],
-   [
-    2.33,
     0.024
    ],
    [
+    2.33,
+    0.047
+   ],
+   [
     2.27,
-    0.035
+    0.024
    ],
    [
     2.22,
-    0.035
+    0.032
    ],
    [
     2.17,
-    0.012
+    0.016
    ],
    [
     2.13,
-    0.035
+    0.016
    ],
    [
     2.08,
@@ -493,7 +493,7 @@
    ],
    [
     2.04,
-    0.035
+    0.016
    ],
    [
     2.0,
