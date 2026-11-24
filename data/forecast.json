@@ -1,82 +1,81 @@
 {
  "schema": "gansett-juice/forecast@1",
- "generatedAt": "2026-11-24T14:29:02.429029-05:00",
+ "generatedAt": "2026-11-24T15:07:19.765045-05:00",
  "timezone": "America/New_York",
  "grid": {
   "interval": "PT1H",
   "steps": 120,
-  "start": "2026-11-24T15:00:00-05:00"
+  "start": "2026-11-24T16:00:00-05:00"
  },
  "sources": [
   {
    "id": "gfswave016",
    "url": "https://marine-api.open-meteo.com/v1/marine?latitude=41.36&longitude=-71.49&hourly=swell_wave_height,swell_wave_direction,swell_wave_period,wind_wave_height,wind_wave_direction,wind_wave_period&timezone=America%2FNew_York&length_unit=imperial&models=ncep_gfswave016&forecast_days=6",
    "status": "ok",
-   "fetchedAt": "2026-11-24T14:28:59.608893-05:00"
+   "fetchedAt": "2026-11-24T15:07:17.389344-05:00"
   },
   {
    "id": "nws-BOX-66-56",
    "url": "https://api.weather.gov/gridpoints/BOX/66,56",
    "status": "ok",
-   "fetchedAt": "2026-11-24T14:29:00.084847-05:00"
+   "fetchedAt": "2026-11-24T15:07:17.693943-05:00"
   },
   {
    "id": "nws-BOX-65-53",
    "url": "https://api.weather.gov/gridpoints/BOX/65,53",
    "status": "ok",
-   "fetchedAt": "2026-11-24T14:29:00.541775-05:00"
+   "fetchedAt": "2026-11-24T15:07:17.944088-05:00"
   },
   {
    "id": "nws-BOX-63-54",
    "url": "https://api.weather.gov/gridpoints/BOX/63,54",
    "status": "ok",
-   "fetchedAt": "2026-11-24T14:29:00.980988-05:00"
+   "fetchedAt": "2026-11-24T15:07:18.389755-05:00"
   },
   {
    "id": "coops-hourly",
    "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&application=gansett-juice&begin_date=20261124&end_date=20261129&datum=MLLW&station=8455083&time_zone=lst_ldt&units=english&format=json&interval=h",
    "status": "ok",
-   "fetchedAt": "2026-11-24T14:29:01.274583-05:00"
+   "fetchedAt": "2026-11-24T15:07:18.551582-05:00"
   },
   {
    "id": "coops-hilo",
    "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&application=gansett-juice&begin_date=20261124&end_date=20261129&datum=MLLW&station=8455083&time_zone=lst_ldt&units=english&format=json&interval=hilo",
    "status": "ok",
-   "fetchedAt": "2026-11-24T14:29:01.438175-05:00"
+   "fetchedAt": "2026-11-24T15:07:18.612167-05:00"
   },
   {
    "id": "ndbc-44097",
    "url": "https://www.ndbc.noaa.gov/data/realtime2/44097.spec",
    "status": "ok",
-   "fetchedAt": "2026-11-24T14:29:01.626586-05:00"
+   "fetchedAt": "2026-11-24T15:07:18.668267-05:00"
   },
   {
    "id": "warmwinds",
    "url": "https://www.warmwinds.com/surf-report",
    "status": "ok",
-   "fetchedAt": "2026-11-24T14:29:02.010042-05:00"
+   "fetchedAt": "2026-11-24T15:07:19.707804-05:00"
   },
   {
    "id": "ndbc-spec-44097",
    "url": "https://www.ndbc.noaa.gov/data/realtime2/44097.data_spec",
    "status": "ok",
-   "fetchedAt": "2026-11-24T14:29:02.138231-05:00"
+   "fetchedAt": "2026-11-24T15:07:19.732804-05:00"
   },
   {
    "id": "nhc-storms",
    "url": "https://www.nhc.noaa.gov/CurrentStorms.json",
    "status": "ok",
-   "fetchedAt": "2026-11-24T14:29:02.314801-05:00"
+   "fetchedAt": "2026-11-24T15:07:19.753300-05:00"
   },
   {
    "id": "nhc-outlook",
    "url": "https://www.nhc.noaa.gov/xml/TWOAT.xml",
    "status": "ok",
-   "fetchedAt": "2026-11-24T14:29:02.421530-05:00"
+   "fetchedAt": "2026-11-24T15:07:19.759845-05:00"
   }
  ],
  "times": [
-  "2026-11-24T15:00:00-05:00",
   "2026-11-24T16:00:00-05:00",
   "2026-11-24T17:00:00-05:00",
   "2026-11-24T18:00:00-05:00",
@@ -195,10 +194,11 @@
   "2026-11-29T11:00:00-05:00",
   "2026-11-29T12:00:00-05:00",
   "2026-11-29T13:00:00-05:00",
-  "2026-11-29T14:00:00-05:00"
+  "2026-11-29T14:00:00-05:00",
+  "2026-11-29T15:00:00-05:00"
  ],
  "observed": {
-  "at": "2026-11-24T14:00:00-05:00",
+  "at": "2026-11-24T14:30:00-05:00",
   "buoy": "44097",
   "swell": {
    "h": 0.7,
@@ -207,17 +207,17 @@
    "e": 0.23
   },
   "windWave": {
-   "h": 5.6,
-   "t": 5.1,
+   "h": 5.2,
+   "t": 5.0,
    "d": 315
   }
  },
  "spectrum": {
   "buoy": "44097",
   "at": "2026-11-24T14:00:00-05:00",
-  "peakPeriod": 5.1,
-  "organization": 58,
-  "hsFt": 5.1,
+  "peakPeriod": 5.0,
+  "organization": 62,
+  "hsFt": 4.8,
   "bins": [
    [
     33.33,
@@ -257,19 +257,19 @@
    ],
    [
     13.33,
-    0.023
+    0.022
    ],
    [
     12.5,
-    0.023
+    0.022
    ],
    [
     11.76,
-    0.045
+    0.068
    ],
    [
     11.11,
-    0.09
+    0.135
    ],
    [
     10.53,
@@ -277,43 +277,43 @@
    ],
    [
     10.0,
-    0.226
+    0.247
    ],
    [
     9.52,
-    0.475
+    0.495
    ],
    [
     9.09,
-    1.356
+    0.675
    ],
    [
     8.7,
-    1.921
+    1.282
    ],
    [
     8.33,
-    1.424
+    1.755
    ],
    [
     8.0,
-    0.881
+    0.743
    ],
    [
     7.69,
-    0.633
+    0.36
    ],
    [
     7.41,
-    0.203
+    0.247
    ],
    [
     7.14,
-    0.113
+    0.225
    ],
    [
     6.9,
-    0.09
+    0.135
    ],
    [
     6.67,
@@ -321,123 +321,123 @@
    ],
    [
     6.45,
-    0.09
+    0.068
    ],
    [
     6.25,
-    0.136
+    0.113
    ],
    [
     6.06,
-    0.249
+    0.27
    ],
    [
     5.88,
-    0.384
+    0.45
    ],
    [
     5.71,
-    0.407
+    0.585
    ],
    [
     5.56,
-    1.017
+    0.945
    ],
    [
     5.41,
-    1.65
+    0.81
    ],
    [
     5.26,
-    2.034
+    1.012
    ],
    [
     5.13,
-    2.26
+    1.643
    ],
    [
     5.0,
-    1.537
+    2.25
    ],
    [
     4.88,
-    1.605
+    2.093
    ],
    [
     4.76,
-    1.672
+    1.08
    ],
    [
     4.65,
-    1.74
+    0.968
    ],
    [
     4.55,
-    1.333
+    1.215
    ],
    [
     4.44,
-    0.859
+    0.787
    ],
    [
     4.35,
-    0.633
+    0.675
    ],
    [
     4.26,
-    0.542
+    0.9
    ],
    [
     4.17,
-    0.723
+    0.833
    ],
    [
     4.08,
-    0.588
+    0.518
    ],
    [
     3.98,
-    0.565
+    0.383
    ],
    [
     3.85,
-    0.316
+    0.36
    ],
    [
     3.7,
-    0.407
+    0.383
    ],
    [
     3.57,
-    0.226
+    0.247
    ],
    [
     3.45,
-    0.136
+    0.225
    ],
    [
     3.33,
-    0.226
+    0.113
    ],
    [
     3.23,
-    0.136
+    0.135
    ],
    [
     3.12,
-    0.113
+    0.135
    ],
    [
     3.03,
-    0.158
+    0.135
    ],
    [
     2.94,
-    0.113
+    0.09
    ],
    [
     2.86,
-    0.136
+    0.09
    ],
    [
     2.78,
@@ -445,11 +445,11 @@
    ],
    [
     2.7,
-    0.045
+    0.09
    ],
    [
     2.63,
-    0.068
+    0.045
    ],
    [
     2.56,
@@ -457,15 +457,15 @@
    ],
    [
     2.5,
-    0.045
+    0.068
    ],
    [
     2.44,
-    0.045
+    0.068
    ],
    [
     2.38,
-    0.045
+    0.068
    ],
    [
     2.33,
@@ -473,31 +473,31 @@
    ],
    [
     2.27,
-    0.023
+    0.045
    ],
    [
     2.22,
-    0.023
+    0.022
    ],
    [
     2.17,
-    0.023
+    0.045
    ],
    [
     2.13,
-    0.023
+    0.045
    ],
    [
     2.08,
-    0.023
+    0.022
    ],
    [
     2.04,
-    0.023
+    0.022
    ],
    [
     2.0,
-    0.023
+    0.045
    ]
   ]
  },
@@ -510,11 +510,11 @@
   "source": "https://www.warmwinds.com/surf-report",
   "reporter": "Nick Haase",
   "updated": "24, November, 2026 @ 03:14",
-  "waveHeightFt": 5.2,
+  "waveHeightFt": 5.6,
   "periodS": 5.0,
-  "swellDir": 318.0,
-  "windMph": 13.0,
-  "windDir": 350.0,
+  "swellDir": 305.0,
+  "windMph": 10.0,
+  "windDir": 340.0,
   "waterTempF": 55.0,
   "outlook": [
    {
@@ -528,7 +528,7 @@
     1.0,
     2.0
    ],
-   "modelMaxFt": 2.12,
+   "modelMaxFt": 2.14,
    "size": "agree",
    "verdict": "threshold",
    "modelTop": 23,
@@ -537,12 +537,6 @@
  },
  "conditions": {
   "swell": [
-   {
-    "h": 1.71,
-    "t": 8.4,
-    "d": 147,
-    "e": 1.14
-   },
    {
     "h": 1.71,
     "t": 8.3,
@@ -1256,15 +1250,15 @@
     "t": 7.5,
     "d": 171,
     "e": 0.12
+   },
+   {
+    "h": 0.53,
+    "t": 8.1,
+    "d": 154,
+    "e": 0.1
    }
   ],
   "windWave": [
-   {
-    "h": 1.57,
-    "t": 3.0,
-    "d": 354,
-    "e": 0.35
-   },
    {
     "h": 1.44,
     "t": 3.0,
@@ -1978,15 +1972,16 @@
     "t": 3.2,
     "d": 229,
     "e": 0.54
+   },
+   {
+    "h": 2.03,
+    "t": 3.3,
+    "d": 226,
+    "e": 0.63
    }
   ],
   "wind": {
    "narragansett": [
-    {
-     "spd": 12.0,
-     "dir": 340,
-     "gust": 16.0
-    },
     {
      "spd": 11.0,
      "dir": 350,
@@ -2581,14 +2576,14 @@
      "spd": 12.0,
      "dir": 250,
      "gust": 16.0
+    },
+    {
+     "spd": 12.0,
+     "dir": 250,
+     "gust": 15.0
     }
    ],
    "point-judith": [
-    {
-     "spd": 13.0,
-     "dir": 340,
-     "gust": 18.0
-    },
     {
      "spd": 11.0,
      "dir": 350,
@@ -3183,14 +3178,14 @@
      "spd": 15.0,
      "dir": 250,
      "gust": 18.0
+    },
+    {
+     "spd": 14.0,
+     "dir": 250,
+     "gust": 18.0
     }
    ],
    "matunuck": [
-    {
-     "spd": 10.0,
-     "dir": 340,
-     "gust": 16.0
-    },
     {
      "spd": 8.0,
      "dir": 350,
@@ -3785,14 +3780,15 @@
      "spd": 11.0,
      "dir": 250,
      "gust": 14.0
+    },
+    {
+     "spd": 10.0,
+     "dir": 250,
+     "gust": 14.0
     }
    ]
   },
   "tide": [
-   {
-    "ft": -0.02,
-    "stage": "rising"
-   },
    {
     "ft": 0.83,
     "stage": "rising"
@@ -4268,6 +4264,10 @@
    {
     "ft": 2.05,
     "stage": "falling"
+   },
+   {
+    "ft": 1.18,
+    "stage": "falling"
    }
   ]
  },
@@ -4379,21 +4379,6 @@
  ],
  "scores": {
   "narragansett-town-beach": [
-   {
-    "s": 14,
-    "status": "ok",
-    "limiting": "size",
-    "hEff": 1.71,
-    "tEff": 8.4,
-    "dEff": 147,
-    "eEff": 1.14,
-    "q": {
-     "size": 0.21,
-     "wind": 0.9,
-     "period": 0.6,
-     "tide": 0.79
-    }
-   },
    {
     "s": 14,
     "status": "ok",
@@ -6178,24 +6163,24 @@
      "period": 0.38,
      "tide": 0.97
     }
-   }
-  ],
-  "point-judith-east": [
+   },
    {
     "s": 0,
     "status": "ok",
     "limiting": "size",
-    "hEff": 1.71,
-    "tEff": 8.4,
-    "dEff": 147,
-    "eEff": 1.14,
+    "hEff": 0.53,
+    "tEff": 8.1,
+    "dEff": 154,
+    "eEff": 0.11,
     "q": {
      "size": 0.0,
-     "wind": 0.85,
-     "period": 0.68,
-     "tide": 0.75
+     "wind": 0.78,
+     "period": 0.52,
+     "tide": 0.96
     }
-   },
+   }
+  ],
+  "point-judith-east": [
    {
     "s": 0,
     "status": "ok",
@@ -7980,24 +7965,24 @@
      "period": 0.5,
      "tide": 0.95
     }
-   }
-  ],
-  "point-judith-south": [
+   },
    {
     "s": 0,
     "status": "ok",
     "limiting": "size",
-    "hEff": 0.24,
-    "tEff": 8.4,
-    "dEff": 147,
-    "eEff": 0.02,
+    "hEff": 0.53,
+    "tEff": 8.1,
+    "dEff": 154,
+    "eEff": 0.11,
     "q": {
      "size": 0.0,
-     "wind": 0.76,
-     "period": 0.68,
-     "tide": 0.75
+     "wind": 0.77,
+     "period": 0.62,
+     "tide": 0.94
     }
-   },
+   }
+  ],
+  "point-judith-south": [
    {
     "s": 0,
     "status": "ok",
@@ -9782,24 +9767,24 @@
      "period": 0.5,
      "tide": 0.95
     }
-   }
-  ],
-  "k38": [
+   },
    {
     "s": 0,
     "status": "ok",
     "limiting": "size",
-    "hEff": 0.02,
-    "tEff": 8.4,
-    "dEff": 147,
-    "eEff": 0.0,
+    "hEff": 0.5,
+    "tEff": 3.3,
+    "dEff": 226,
+    "eEff": 0.04,
     "q": {
      "size": 0.0,
-     "wind": 0.76,
-     "period": 0.68,
-     "tide": 0.99
+     "wind": 0.0,
+     "period": 0.25,
+     "tide": 0.94
     }
-   },
+   }
+  ],
+  "k38": [
    {
     "s": 0,
     "status": "ok",
@@ -11584,24 +11569,24 @@
      "period": 0.5,
      "tide": 0.59
     }
+   },
+   {
+    "s": 0,
+    "status": "ok",
+    "limiting": "size",
+    "hEff": 0.02,
+    "tEff": 8.1,
+    "dEff": 154,
+    "eEff": 0.0,
+    "q": {
+     "size": 0.0,
+     "wind": 0.0,
+     "period": 0.62,
+     "tide": 0.84
+    }
    }
   ],
   "matunuck": [
-   {
-    "s": 23,
-    "status": "ok",
-    "limiting": "size",
-    "hEff": 1.71,
-    "tEff": 8.4,
-    "dEff": 147,
-    "eEff": 1.14,
-    "q": {
-     "size": 0.35,
-     "wind": 0.87,
-     "period": 0.48,
-     "tide": 0.99
-    }
-   },
    {
     "s": 23,
     "status": "ok",
@@ -13400,12 +13385,26 @@
      "period": 0.3,
      "tide": 0.42
     }
+   },
+   {
+    "s": 0,
+    "status": "ok",
+    "limiting": "size",
+    "hEff": 0.55,
+    "tEff": 8.1,
+    "dEff": 154,
+    "eEff": 0.11,
+    "q": {
+     "size": 0.0,
+     "wind": 0.31,
+     "period": 0.42,
+     "tide": 0.78
+    }
    }
   ]
  },
  "daylight": [
   true,
-  true,
   false,
   false,
   false,
@@ -13516,6 +13515,7 @@
   false,
   false,
   false,
+  true,
   true,
   true,
   true,
@@ -13578,27 +13578,27 @@
    {
     "spot": "matunuck",
     "s": 23,
-    "at": "2026-11-24T15:00:00-05:00"
+    "at": "2026-11-24T16:00:00-05:00"
    },
    {
     "spot": "narragansett-town-beach",
     "s": 14,
-    "at": "2026-11-24T15:00:00-05:00"
+    "at": "2026-11-24T16:00:00-05:00"
    },
    {
     "spot": "point-judith-east",
     "s": 0,
-    "at": "2026-11-24T15:00:00-05:00"
+    "at": "2026-11-24T16:00:00-05:00"
    },
    {
     "spot": "point-judith-south",
     "s": 0,
-    "at": "2026-11-24T15:00:00-05:00"
+    "at": "2026-11-24T16:00:00-05:00"
    },
    {
     "spot": "k38",
     "s": 0,
-    "at": "2026-11-24T15:00:00-05:00"
+    "at": "2026-11-24T16:00:00-05:00"
    }
   ],
   "bestWeek": [
@@ -13615,17 +13615,17 @@
    {
     "spot": "matunuck",
     "s": 23,
-    "at": "2026-11-24T15:00:00-05:00"
+    "at": "2026-11-24T16:00:00-05:00"
    },
    {
     "spot": "point-judith-south",
     "s": 0,
-    "at": "2026-11-24T15:00:00-05:00"
+    "at": "2026-11-24T16:00:00-05:00"
    },
    {
     "spot": "k38",
     "s": 0,
-    "at": "2026-11-24T15:00:00-05:00"
+    "at": "2026-11-24T16:00:00-05:00"
    }
   ],
   "worthItThreshold": 35,
@@ -13635,9 +13635,9 @@
    "at": "2026-11-27T07:00:00-05:00"
   },
   "rationale": [
-   "Every spot is size-limited \u2014 the biggest surf reaching any of them today is 2.12 ft.",
-   "Warm Winds calls it 1\u20132 ft; we make it 2.12 ft. We agree on the size.",
-   "Our \u201cworth it\u201d bar (35/100) assumes you want a wave with some push. At 2.12 ft it's a longboard day, not a nothing day \u2014 if you log, go anyway."
+   "Every spot is size-limited \u2014 the biggest surf reaching any of them today is 2.14 ft.",
+   "Warm Winds calls it 1\u20132 ft; we make it 2.14 ft. We agree on the size.",
+   "Our \u201cworth it\u201d bar (35/100) assumes you want a wave with some push. At 2.14 ft it's a longboard day, not a nothing day \u2014 if you log, go anyway."
   ]
  }
 }
