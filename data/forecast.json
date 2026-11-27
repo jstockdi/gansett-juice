@@ -1,6 +1,6 @@
 {
  "schema": "gansett-juice/forecast@1",
- "generatedAt": "2026-11-27T13:09:09.502611-05:00",
+ "generatedAt": "2026-11-27T13:55:00.822119-05:00",
  "timezone": "America/New_York",
  "grid": {
   "interval": "PT1H",
@@ -12,67 +12,67 @@
    "id": "gfswave016",
    "url": "https://marine-api.open-meteo.com/v1/marine?latitude=41.36&longitude=-71.49&hourly=swell_wave_height,swell_wave_direction,swell_wave_period,wind_wave_height,wind_wave_direction,wind_wave_period&timezone=America%2FNew_York&length_unit=imperial&models=ncep_gfswave016&forecast_days=6",
    "status": "ok",
-   "fetchedAt": "2026-11-27T13:09:06.161179-05:00"
+   "fetchedAt": "2026-11-27T13:54:58.253890-05:00"
   },
   {
    "id": "nws-BOX-66-56",
    "url": "https://api.weather.gov/gridpoints/BOX/66,56",
    "status": "ok",
-   "fetchedAt": "2026-11-27T13:09:06.638803-05:00"
+   "fetchedAt": "2026-11-27T13:54:58.523551-05:00"
   },
   {
    "id": "nws-BOX-65-53",
    "url": "https://api.weather.gov/gridpoints/BOX/65,53",
    "status": "ok",
-   "fetchedAt": "2026-11-27T13:09:07.079169-05:00"
+   "fetchedAt": "2026-11-27T13:54:58.736963-05:00"
   },
   {
    "id": "nws-BOX-63-54",
    "url": "https://api.weather.gov/gridpoints/BOX/63,54",
    "status": "ok",
-   "fetchedAt": "2026-11-27T13:09:07.528389-05:00"
+   "fetchedAt": "2026-11-27T13:54:58.939144-05:00"
   },
   {
    "id": "coops-hourly",
    "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&application=gansett-juice&begin_date=20261127&end_date=20261202&datum=MLLW&station=8455083&time_zone=lst_ldt&units=english&format=json&interval=h",
    "status": "ok",
-   "fetchedAt": "2026-11-27T13:09:07.792789-05:00"
+   "fetchedAt": "2026-11-27T13:54:59.143828-05:00"
   },
   {
    "id": "coops-hilo",
    "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&application=gansett-juice&begin_date=20261127&end_date=20261202&datum=MLLW&station=8455083&time_zone=lst_ldt&units=english&format=json&interval=hilo",
    "status": "ok",
-   "fetchedAt": "2026-11-27T13:09:07.993650-05:00"
+   "fetchedAt": "2026-11-27T13:54:59.235170-05:00"
   },
   {
    "id": "ndbc-44097",
    "url": "https://www.ndbc.noaa.gov/data/realtime2/44097.spec",
    "status": "ok",
-   "fetchedAt": "2026-11-27T13:09:08.201744-05:00"
+   "fetchedAt": "2026-11-27T13:54:59.399048-05:00"
   },
   {
    "id": "warmwinds",
    "url": "https://www.warmwinds.com/surf-report",
    "status": "ok",
-   "fetchedAt": "2026-11-27T13:09:09.079721-05:00"
+   "fetchedAt": "2026-11-27T13:55:00.430888-05:00"
   },
   {
    "id": "ndbc-spec-44097",
    "url": "https://www.ndbc.noaa.gov/data/realtime2/44097.data_spec",
    "status": "ok",
-   "fetchedAt": "2026-11-27T13:09:09.202165-05:00"
+   "fetchedAt": "2026-11-27T13:55:00.562938-05:00"
   },
   {
    "id": "nhc-storms",
    "url": "https://www.nhc.noaa.gov/CurrentStorms.json",
    "status": "ok",
-   "fetchedAt": "2026-11-27T13:09:09.365416-05:00"
+   "fetchedAt": "2026-11-27T13:55:00.748550-05:00"
   },
   {
    "id": "nhc-outlook",
    "url": "https://www.nhc.noaa.gov/xml/TWOAT.xml",
    "status": "ok",
-   "fetchedAt": "2026-11-27T13:09:09.495267-05:00"
+   "fetchedAt": "2026-11-27T13:55:00.816878-05:00"
   }
  ],
  "times": [
@@ -198,26 +198,26 @@
   "2026-12-02T13:00:00-05:00"
  ],
  "observed": {
-  "at": "2026-11-27T12:30:00-05:00",
+  "at": "2026-11-27T13:30:00-05:00",
   "buoy": "44097",
   "swell": {
-   "h": 6.2,
+   "h": 7.2,
    "t": 10.0,
    "d": 157,
-   "e": 17.86
+   "e": 24.08
   },
   "windWave": {
-   "h": 9.5,
+   "h": 9.2,
    "t": 9.5,
-   "d": 157
+   "d": 180
   }
  },
  "spectrum": {
   "buoy": "44097",
-  "at": "2026-11-27T12:00:00-05:00",
+  "at": "2026-11-27T13:00:00-05:00",
   "peakPeriod": 10.0,
-  "organization": 61,
-  "hsFt": 11.0,
+  "organization": 69,
+  "hsFt": 11.3,
   "bins": [
    [
     33.33,
@@ -257,167 +257,167 @@
    ],
    [
     13.33,
-    0.765
+    0.759
    ],
    [
     12.5,
-    2.295
+    3.289
    ],
    [
     11.76,
-    5.814
+    5.566
    ],
    [
     11.11,
-    7.956
+    9.108
    ],
    [
     10.53,
-    11.322
+    14.421
    ],
    [
     10.0,
-    15.3
+    25.3
    ],
    [
     9.52,
-    15.147
+    21.252
    ],
    [
     9.09,
-    12.699
+    9.614
    ],
    [
     8.7,
-    7.038
+    7.843
    ],
    [
     8.33,
-    7.65
+    6.578
    ],
    [
     8.0,
-    8.721
+    5.819
    ],
    [
     7.69,
-    6.885
+    5.313
    ],
    [
     7.41,
-    5.202
+    4.554
    ],
    [
     7.14,
-    3.06
+    3.542
    ],
    [
     6.9,
-    2.142
+    2.53
    ],
    [
     6.67,
-    2.601
+    1.518
    ],
    [
     6.45,
-    3.366
+    1.771
    ],
    [
     6.25,
-    3.519
+    2.53
    ],
    [
     6.06,
-    2.601
+    1.518
    ],
    [
     5.88,
-    2.448
+    1.518
    ],
    [
     5.71,
-    1.377
+    1.771
    ],
    [
     5.56,
-    1.377
+    1.265
    ],
    [
     5.41,
-    1.683
+    0.759
    ],
    [
     5.26,
-    1.224
+    1.012
    ],
    [
     5.13,
-    0.918
+    1.012
    ],
    [
     5.0,
-    0.918
+    0.506
    ],
    [
     4.88,
-    0.918
+    0.506
    ],
    [
     4.76,
-    0.459
+    1.012
    ],
    [
     4.65,
-    0.459
+    1.012
    ],
    [
     4.55,
-    0.306
+    1.012
    ],
    [
     4.44,
-    0.459
+    1.012
    ],
    [
     4.35,
-    0.765
+    0.759
    ],
    [
     4.26,
-    0.459
+    0.506
    ],
    [
     4.17,
-    0.459
+    0.506
    ],
    [
     4.08,
-    0.306
+    0.253
    ],
    [
     3.98,
-    0.306
+    0.253
    ],
    [
     3.85,
-    0.459
+    0.253
    ],
    [
     3.7,
-    0.306
+    0.0
    ],
    [
     3.57,
-    0.153
+    0.253
    ],
    [
     3.45,
-    0.153
+    0.253
    ],
    [
     3.33,
-    0.153
+    0.0
    ],
    [
     3.23,
@@ -425,7 +425,7 @@
    ],
    [
     3.12,
-    0.153
+    0.0
    ],
    [
     3.03,
@@ -510,10 +510,10 @@
   "source": "https://www.warmwinds.com/surf-report",
   "reporter": "Nick Haase",
   "updated": "27, November, 2026 @ 02:54",
-  "waveHeightFt": 9.5,
+  "waveHeightFt": 9.2,
   "periodS": 10.0,
-  "swellDir": 152.0,
-  "windMph": 17.0,
+  "swellDir": 166.0,
+  "windMph": 11.0,
   "windDir": 210.0,
   "waterTempF": 55.0,
   "outlook": [
